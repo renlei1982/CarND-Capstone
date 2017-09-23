@@ -5,6 +5,8 @@ from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 
 import math
+import tf
+import numpy as np
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -29,23 +31,51 @@ class WaypointUpdater(object):
         rospy.init_node('waypoint_updater')
 
         rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
+        self.base_waypoints = None
         self.base_waypoints_sub = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
-
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
 
 
-        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
+        self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
 
         rospy.spin()
 
+    def next_waypoint(self, x, y, yaw):
+        # Find the closest waypoint
+        dist = [(x - wp.pose.pose.position.x)**2 + (y - wp.pose.pose.position.y)**2 for wp in self.base_waypoints]
+        closest = np.argmin(dist)
+        wp = self.base_waypoints[closest]
+        # Is it in front of or behind the vehicle?
+        angle = math.atan2(wp.pose.pose.position.y - y, wp.pose.pose.position.x - x)
+        relative_angle = (angle - yaw) % (2 * math.pi)
+        if (relative_angle > 0.5 * math.pi) & (relative_angle < 1.5 * math.pi):
+            # Behind, so return next waypoint index
+            return closest + 1 % len(self.base_waypoints)
+        else:
+            # In front, so return this one
+            return closest
+
     def pose_cb(self, msg):
-        # TODO: Implement
-        pass
+        if not self.base_waypoints:
+            return
+        _, _, yaw = tf.transformations.euler_from_quaternion([msg.pose.orientation.x,
+                                                              msg.pose.orientation.y,
+                                                              msg.pose.orientation.z,
+                                                              msg.pose.orientation.w])
+        # Find the index of the next waypoint
+        next_wp_id = self.next_waypoint(msg.pose.position.x, msg.pose.position.y, yaw)
+        rospy.loginfo('Next waypoint id = {0}'.format(next_wp_id))
+        # Prepare a list of the upcoming waypoints
+        upcoming_waypoints = [self.base_waypoints[idx % len(self.base_waypoints)]
+                              for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
+        # Prepare message
+        msg = Lane(waypoints=upcoming_waypoints)
+        # Publish it
+        self.final_waypoints_pub.publish(msg)
 
     def waypoints_cb(self, waypoints):
-        # TODO: Implement
         self.base_waypoints = waypoints.waypoints
         # Unsubscribe from base waypoints to improve performance
         self.base_waypoints_sub.unregister()
