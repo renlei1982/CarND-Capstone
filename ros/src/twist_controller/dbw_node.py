@@ -36,28 +36,27 @@ class DBWNode(object):
         rospy.init_node('dbw_node')
 
         # TODO: Create `TwistController` object
-        self.controller = TwistController(self)
-        
-        controller.vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
-        controller.fuel_capacity = rospy.get_param('~fuel_capacity', 13.5)
-        controller.brake_deadband = rospy.get_param('~brake_deadband', .1)
-        controller.decel_limit = rospy.get_param('~decel_limit', -5)
-        controller.accel_limit = rospy.get_param('~accel_limit', 1.)
-        controller.wheel_radius = rospy.get_param('~wheel_radius', 0.2413)
-        controller.wheel_base = rospy.get_param('~wheel_base', 2.8498)
-        controller.steer_ratio = rospy.get_param('~steer_ratio', 14.8)
-        controller.max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
-        controller.max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
+        self.controller = Controller()
+
+        # controller.vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
+        # controller.fuel_capacity = rospy.get_param('~fuel_capacity', 13.5)
+        # controller.brake_deadband = rospy.get_param('~brake_deadband', .1)
+        # controller.decel_limit = rospy.get_param('~decel_limit', -5)
+        # controller.accel_limit = rospy.get_param('~accel_limit', 1.)
+        # controller.wheel_radius = rospy.get_param('~wheel_radius', 0.2413)
+        # controller.wheel_base = rospy.get_param('~wheel_base', 2.8498)
+        # controller.steer_ratio = rospy.get_param('~steer_ratio', 14.8)
+        # controller.max_lat_accel = rospy.get_param('~max_lat_accel', 3.)
+        # controller.max_steer_angle = rospy.get_param('~max_steer_angle', 8.)
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
         self.throttle_pub = rospy.Publisher('/vehicle/throttle_cmd',
                                             ThrottleCmd, queue_size=1)
-        self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
+       	self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        
-        
+
 
 
         # TODO: Arguments to be specified for TwistController
@@ -79,15 +78,17 @@ class DBWNode(object):
         self.controller.enable = True #dbw_enabled;
     
 
-    def loop(self):s
+    def loop(self):
         rate = rospy.Rate(50) # 50Hz
         while not rospy.is_shutdown():
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
-            controller.sample_time = 1/rate
-            throttle, brake, steering = self.controller.control(10, 0, 0, True)
+            #controller.sample_time = 1/rate
+            #throttle, brake, steering = self.controller.control(10, 0, 0, True)
             #if <dbw is enabled>:
             throttle = 0.5
+            brake = 0
+            steer = 0
             self.publish(throttle, brake, steer)
             rate.sleep()
 
