@@ -27,7 +27,7 @@ class Controller(object):
         self.enabled = False
         self.sample_time = 1/50 # initial value, gets updated in loop
 
-        self.throttle_PID = PID(0.1, 0.1, 0.1) # Dummy values
+        self.throttle_PID = PID(1, 0.0001, 0.1) # Dummy values
 
         self.throttle_error = 0
 
