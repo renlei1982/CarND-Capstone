@@ -8,36 +8,36 @@ from yaw_controller import YawController
 
 
 class Controller(object):
-    def __init__(self, vehicle_mass, wheel_radius, brake_deadband,
-                 decel_limit, accel_limit, wheel_base, steer_ratio, max_lat_accel, max_steer_angle):
+    def __init__(self):
         # TODO: Implement
         # Fixed parameters
-        self.vehicle_mass = vehicle_mass
-        self.brake_deadband = brake_deadband
-        self.wheel_radius = wheel_radius
-        self.accel_limit = accel_limit
-        self.wheel_base = wheel_base
-        self.steer_ratio = steer_ratio
-        self.max_lat_accel = max_lat_accel
-        self.max_steer_angle = max_steer_angle
-        
+        self.vehicle_mass = 0
+        self.brake_deadband = 0
+        self.wheel_radius = 0
+        self.accel_limit = 0
+        self.wheel_base = 0
+        self.steer_ratio = 0
+        self.max_lat_accel = 0
+        self.max_steer_angle = 0
+
         # To be Updated in each cycle
         self.twist_command = None
         self.current_velocity = None
-        self.enabled = False
+        self.enabled = True
         self.sample_time = 1/50 # initial value, gets updated in loop
+
 
         self.throttle_PID = PID(1, 0.0001, 0.1) # Dummy values
 
         self.throttle_error = 0
 
-        self.yaw_ctrl = YawController(self.wheel_base,
-                                      self.steer_ratio,
-                                      0,
-                                      self.max_lat_accel,
-                                      self.max_steer_angle) # Set the min_speed as 0
-        
+        # self.throttle_error = 0
 
+        #self.yaw_ctrl = YawController(self.wheel_base,
+        #                              self.steer_ratio,
+        #                              0,
+        #                              self.max_lat_accel,
+        #                              self.max_steer_angle) # Set the min_speed as 0
 
 
 
@@ -45,10 +45,11 @@ class Controller(object):
         # TODO: Change the arg, kwarg list to suit your needs
         self.throttle_error = target_v - actual_v
 
-        throttle = self.throttle_PID.step(self.throttle_error, self.sample_time) #sample_time should be sampled from 'dbw_node.py' loop func 
+        # throttle = self.throttle_PID.step(self.throttle_error, self.sample_time) #sample_time should be sampled from 'dbw_node.py' loop func 
 
-        steer = self.yaw_ctrl.get_steering(target_v, target_angular_v, actual_v)
-
-        brake = 0; # to be implemented
+        #steer = self.yaw_ctrl.get_steering(target_v, target_angular_v, actual_v)
+	throttle = 0.5
+	steer = 0
+        brake = 0 # to be implemented
         # Return throttle, brake, steer
         return throttle, brake, steer
