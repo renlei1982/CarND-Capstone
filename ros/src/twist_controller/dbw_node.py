@@ -57,7 +57,7 @@ class DBWNode(object):
         self.start_time = 0
 
         # TODO: Create `TwistController` object
-        self.controller = Controller(self, vehicle_mass, wheel_radius, brake_deadband,
+        self.controller = Controller(vehicle_mass, wheel_radius, brake_deadband,
                  decel_limit, accel_limit, wheel_base, steer_ratio, max_lat_accel, max_steer_angle)
         
 
