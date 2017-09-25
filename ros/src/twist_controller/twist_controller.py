@@ -26,7 +26,10 @@ class Controller(object):
         self.enabled = True
         self.sample_time = 1/50 # initial value, gets updated in loop
 
-        # self.throttle_PID = PID(0.1, 0.1, 0.1) # Dummy values
+
+        self.throttle_PID = PID(1, 0.0001, 0.1) # Dummy values
+
+        self.throttle_error = 0
 
         # self.throttle_error = 0
 
@@ -40,6 +43,7 @@ class Controller(object):
 
     def control(self, target_v, target_angular_v, actual_v, dbw_status):
         # TODO: Change the arg, kwarg list to suit your needs
+        self.throttle_error = target_v - actual_v
 
         # throttle = self.throttle_PID.step(self.throttle_error, self.sample_time) #sample_time should be sampled from 'dbw_node.py' loop func 
 

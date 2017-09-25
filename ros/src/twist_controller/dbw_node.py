@@ -56,8 +56,8 @@ class DBWNode(object):
        	self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-
-
+        # Set up the sample time point for loop and PID control
+        self.start_time = 0
 
         # TODO: Arguments to be specified for TwistController
 
@@ -79,12 +79,19 @@ class DBWNode(object):
     
 
     def loop(self):
+
         rate = rospy.Rate(50) # 50Hz
+
+        while not self.start_time:
+            self.start_time = rospy.Time.now().to_sec()
+            
         while not rospy.is_shutdown():
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
-            #controller.sample_time = 1/rate
+
+            self.controller.sample_time = rospy.Time.now().to_sec() - self.start_time
             #throttle, brake, steering = self.controller.control(10, 0, 0, True)
+
             #if <dbw is enabled>:
             throttle = 0.5
             brake = 0
