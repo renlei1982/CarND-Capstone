@@ -28,10 +28,12 @@ class Controller(object):
 
 
         self.throttle_PID = PID(1, 0.0001, 0.1) # Dummy values
-
         self.throttle_error = 0
 
-        # self.throttle_error = 0
+        #initial control values	
+        self.throttle = 0
+        self.brake = 0
+        self.steer = 0
 
         #self.yaw_ctrl = YawController(self.wheel_base,
         #                              self.steer_ratio,
@@ -43,13 +45,18 @@ class Controller(object):
 
     def control(self, target_v, target_angular_v, actual_v, dbw_status):
         # TODO: Change the arg, kwarg list to suit your needs
-        self.throttle_error = target_v - actual_v
+        # If we drive slower than the target sppeed, we push the gas pedal (throttle), othwise not
+        if target_v > actual_v-0.1:
+            self.throttle_error = target_v - actual_v
+            self.throttle = self.throttle_PID.step(self.throttle_error, self.sample_time)
+            self.brake = 0
+        else:
+            self.throttle = 0
+            if target_v < actual:
+                self.brake = 0.5 # we need a much better controller. 
+                #we may define a deceleration curve and define
+                #stopping in front of the traffic light
+                self.steer = 0
 
-        # throttle = self.throttle_PID.step(self.throttle_error, self.sample_time) #sample_time should be sampled from 'dbw_node.py' loop func 
-
-        #steer = self.yaw_ctrl.get_steering(target_v, target_angular_v, actual_v)
-	throttle = 0.5
-	steer = 0
-        brake = 0 # to be implemented
         # Return throttle, brake, steer
-        return throttle, brake, steer
+        return self.throttle, self.brake, self.steer
