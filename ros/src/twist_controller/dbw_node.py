@@ -57,7 +57,10 @@ class DBWNode(object):
                                          BrakeCmd, queue_size=1)
 
         # Set up the sample time point for loop and PID control
-        self.start_time = 0
+        self.start_time = 0.0
+
+        #Set up the yaw_angle for the yaw_controller
+        self.yaw_angle = 0.0
 
         # TODO: Arguments to be specified for TwistController
 
@@ -70,6 +73,7 @@ class DBWNode(object):
 
     def twist_cmd_callback(self, twist_command):
         self.controller.twist_command = twist_command
+        self.yaw_angle = twist_command.twist.angular.z
 
     def current_velocity_callback(self, current_velocity):
         self.controller.current_velocity = current_velocity
@@ -90,7 +94,8 @@ class DBWNode(object):
             # You should only publish the control commands if dbw is enabled
 
             self.controller.sample_time = rospy.Time.now().to_sec() - self.start_time
-            throttle, brake, steer = self.controller.control(10, 0, 0, True)
+            self.start_time = rospy.Time.now().to_sec()
+            throttle, brake, steer = self.controller.control(10, self.yaw_angle, 0, True)
 
             #if <dbw is enabled>:
 

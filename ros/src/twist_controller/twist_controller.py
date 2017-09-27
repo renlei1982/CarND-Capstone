@@ -5,6 +5,7 @@ ONE_MPH = 0.44704
 import rospy
 from pid import PID
 from yaw_controller import YawController
+from lowpass import LowPassFilter
 
 
 class Controller(object):
@@ -35,15 +36,17 @@ class Controller(object):
         self.brake = 0
         self.steer = 0
 
-        #self.yaw_ctrl = YawController(self.wheel_base,
-        #                              self.steer_ratio,
-        #                              0,
-        #                              self.max_lat_accel,
-        #                              self.max_steer_angle) # Set the min_speed as 0
+        self.yaw_ctrl = YawController(self.wheel_base,
+                                      self.steer_ratio,
+                                      0,
+                                      self.max_lat_accel,
+                                      self.max_steer_angle) # Set the min_speed as 0
+
+        self.LPF = LowPassFilter(0.96, 1.0)
 
 
 
-    def control(self, target_v, target_angular_v, actual_v, dbw_status):
+    def control(self, target_v, yaw_angle, actual_v, dbw_status):
         # TODO: Change the arg, kwarg list to suit your needs
         # If we drive slower than the target sppeed, we push the gas pedal (throttle), othwise not
         if target_v > actual_v-0.1:
@@ -56,7 +59,10 @@ class Controller(object):
                 self.brake = 0.5 # we need a much better controller. 
                 #we may define a deceleration curve and define
                 #stopping in front of the traffic light
-                self.steer = 0
+
+        yaw_angle = self.LPF.filt(yaw_angle)
+
+        self.steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v)
 
         # Return throttle, brake, steer
         return self.throttle, self.brake, self.steer
