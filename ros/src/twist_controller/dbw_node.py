@@ -61,12 +61,15 @@ class DBWNode(object):
 
         #Set up the yaw_angle for the yaw_controller
         self.yaw_angle = 0.0
+        # init actual speed read
+        self.actual_v = 0
 
         # TODO: Arguments to be specified for TwistController
 
         # TODO: Subscribe to all the topics you need to
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_callback)
-        rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback,
+                queue_size =1)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_callback)
 
         self.loop()
@@ -76,7 +79,8 @@ class DBWNode(object):
         self.yaw_angle = twist_command.twist.angular.z
 
     def current_velocity_callback(self, current_velocity):
-        self.controller.current_velocity = current_velocity
+        self.controller.current_velocity = current_velocity #maybe unnecessary
+        self.actual_v = current_velocity.twist.linear.x
 
     def dbw_enabled_callback(self, dbw_enabled):
         self.controller.enable = True #dbw_enabled;
@@ -95,11 +99,13 @@ class DBWNode(object):
 
             self.controller.sample_time = rospy.Time.now().to_sec() - self.start_time
             self.start_time = rospy.Time.now().to_sec()
-            throttle, brake, steer = self.controller.control(10, self.yaw_angle, 0, True)
+            throttle, brake, steer = self.controller.control(10, self.yaw_angle,
+                    self.actual_v, True)
 
             #if <dbw is enabled>:
 
             self.publish(throttle, brake, steer)
+            # self.publish(1, 0, 0)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
@@ -107,6 +113,7 @@ class DBWNode(object):
         tcmd.enable = True
         tcmd.pedal_cmd_type = ThrottleCmd.CMD_PERCENT
         tcmd.pedal_cmd = throttle
+        rospy.loginfo(throttle)
         self.throttle_pub.publish(tcmd)
 
         scmd = SteeringCmd()
