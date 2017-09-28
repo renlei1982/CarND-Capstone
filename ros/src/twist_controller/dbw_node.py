@@ -62,6 +62,12 @@ class DBWNode(object):
         #Set up the yaw_angle for the yaw_controller
         self.yaw_angle = 0.0
 
+        # Set up the current_velocity
+        self.current_velocity = 0.0
+
+        #Set up the dbw_enable
+        self.dbw_enable = True
+
         # TODO: Arguments to be specified for TwistController
 
         # TODO: Subscribe to all the topics you need to
@@ -72,14 +78,16 @@ class DBWNode(object):
         self.loop()
 
     def twist_cmd_callback(self, twist_command):
-        self.controller.twist_command = twist_command
+        #self.controller.twist_command = twist_command
         self.yaw_angle = twist_command.twist.angular.z
 
     def current_velocity_callback(self, current_velocity):
-        self.controller.current_velocity = current_velocity
+        #self.controller.current_velocity = current_velocity
+        self.current_velocity = current_velocity.twist.linear.x
 
     def dbw_enabled_callback(self, dbw_enabled):
-        self.controller.enable = True #dbw_enabled;
+        #self.controller.enable = True #dbw_enabled;
+        self.dbw_enable = True
 
 
     def loop(self):
@@ -95,7 +103,7 @@ class DBWNode(object):
 
             self.controller.sample_time = rospy.Time.now().to_sec() - self.start_time
             self.start_time = rospy.Time.now().to_sec()
-            throttle, brake, steer = self.controller.control(10, self.yaw_angle, 0, True)
+            throttle, brake, steer = self.controller.control(10.0, self.yaw_angle, self.current_velocity, True)
 
             #if <dbw is enabled>:
 
