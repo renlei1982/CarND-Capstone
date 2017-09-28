@@ -10,8 +10,10 @@ from light_classification.tl_classifier import TLClassifier
 import tf
 import cv2
 import yaml
+import numpy as np
 
 STATE_COUNT_THRESHOLD = 3
+LIGHT_HORIZON = 100 # How many waypoints ahead to look for light
 
 class TLDetector(object):
     def __init__(self):
@@ -21,9 +23,12 @@ class TLDetector(object):
         self.waypoints = None
         self.camera_image = None
         self.lights = []
+        self.current_waypoint_id = None
+        self.light_waypoints = []
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/current_waypoint_id', Int32, self.current_waypoint_cb)
         self.base_waypoints_sub = sub2
 
         '''
@@ -57,9 +62,18 @@ class TLDetector(object):
         self.pose = msg
 
     def waypoints_cb(self, waypoints):
-        self.waypoints = waypoints
+        self.waypoints = waypoints.waypoints
         # Unsubscribe from base waypoints to improve performance
         self.base_waypoints_sub.unregister()
+        # Work out the closest waypoint to each traffic light
+        for light in self.config['light_positions']:
+            light_wp = self.get_closest_waypoint(light[0], light[1])
+            # Store waypoint range in which light will be visible to car
+            self.light_waypoints.append(((light_wp - LIGHT_HORIZON) % len(self.waypoints), light_wp))
+
+    def current_waypoint_cb(self, msg):
+        # Save current waypoint id published from waypoint updater
+        self.current_waypoint_id = msg.data
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
@@ -94,19 +108,18 @@ class TLDetector(object):
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
         self.state_count += 1
 
-    def get_closest_waypoint(self, pose):
+    def get_closest_waypoint(self, x, y):
         """Identifies the closest path waypoint to the given position
-            https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
         Args:
-            pose (Pose): position to match a waypoint to
+            x, y: traffic light location
 
         Returns:
             int: index of the closest waypoint in self.waypoints
 
         """
-        #TODO implement
-        return 0
-
+        dist = [(x - wp.pose.pose.position.x)**2 + (y - wp.pose.pose.position.y)**2 for wp in self.waypoints]
+        closest = np.argmin(dist)
+        return closest
 
     def project_to_image_plane(self, point_in_world):
         """Project point from 3D world coordinates to 2D camera image location
@@ -172,17 +185,23 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        light = None
-        light_positions = self.config['light_positions']
-        if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose)
+        car_position = self.current_waypoint_id
+        if (not car_position) | (not self.light_waypoints):
+            rospy.logwarn('Data not ready for light classification')
+            return -1, TrafficLight.UNKNOWN
 
-        #TODO find the closest visible traffic light (if one exists)
+        # Find the closest visible traffic light (if one exists)
+        light = None
+        for l in self.light_waypoints:
+            visible = (car_position >= l[0]) & (car_position <= l[1])
+            if visible:
+                light = l[1]
+                break
 
         if light:
             state = self.get_light_state(light)
-            rospy.logwarn(state)
-            return light_wp, state
+            rospy.loginfo('Light at waypoint {0} classified as {1}'.format(light, state))
+            return light, state
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN
 
