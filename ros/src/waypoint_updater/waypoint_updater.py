@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 
 import math
 import tf
@@ -38,7 +39,8 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
 
-        # TODO: Add other member variables you need below
+        # Publisher for the current waypoint id
+        self.waypoint_id_pub = rospy.Publisher('/current_waypoint_id', Int32, queue_size=1)
 
         rospy.spin()
 
@@ -67,6 +69,7 @@ class WaypointUpdater(object):
         # Find the index of the next waypoint
         next_wp_id = self.next_waypoint(msg.pose.position.x, msg.pose.position.y, yaw)
         rospy.loginfo('Next waypoint id = {0}'.format(next_wp_id))
+        self.waypoint_id_pub.publish(Int32(next_wp_id))
         # Prepare a list of the upcoming waypoints
         upcoming_waypoints = [self.base_waypoints[idx % len(self.base_waypoints)]
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
