@@ -12,6 +12,7 @@ class Controller(object):
     def __init__(self, **kwargs):
         # TODO: Implement
         # Fixed parameters
+<<<<<<< HEAD
 
         self.vehicle_mass = kwargs['vehicle_mass']
         self.fuel_capacity = kwargs['fuel_capacity']

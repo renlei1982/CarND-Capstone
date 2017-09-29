@@ -36,6 +36,7 @@ class DBWNode(object):
         rospy.init_node('dbw_node')
 
         # TODO: Create `TwistController` object
+<<<<<<< HEAD
 
         ctr_params = {
                 "vehicle_mass" : rospy.get_param('~vehicle_mass', 1736.35),
@@ -52,6 +53,11 @@ class DBWNode(object):
 
 
         self.controller = Controller(**ctr_params)
+=======
+        self.controller = Controller()
+
+
+>>>>>>> 961f3b786b44d299a39c778fd2f664bafbee8235
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
