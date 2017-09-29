@@ -59,7 +59,7 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        self.max_speed = 20.0
+        self.max_speed = 0.0
         # Set up the sample time point for loop and PID control
         self.start_time = 0.0
 
@@ -84,7 +84,6 @@ class DBWNode(object):
         #I guess this can be used to set the max allowable speed, not sure though
         #to be used in self.controller.control(...)
         self.max_speed = twist_command.twist.linear.x
-        self.max_speed = 20
 
     def current_velocity_callback(self, current_velocity):
         self.controller.current_velocity = current_velocity #maybe unnecessary
@@ -116,7 +115,6 @@ class DBWNode(object):
             else:
                 self.controller.speed_PID.reset()
 
-            self.publish(throttle, brake, steer)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
