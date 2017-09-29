@@ -9,17 +9,20 @@ from lowpass import LowPassFilter
 
 
 class Controller(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         # TODO: Implement
         # Fixed parameters
-        self.vehicle_mass = 0
-        self.brake_deadband = 0
-        self.wheel_radius = 0
-        self.accel_limit = 0
-        self.wheel_base = 0
-        self.steer_ratio = 0
-        self.max_lat_accel = 0
-        self.max_steer_angle = 0
+
+        self.vehicle_mass = kwargs['vehicle_mass']
+        self.fuel_capacity = kwargs['fuel_capacity']
+        self.brake_deadband = kwargs['brake_deadband']
+        self.decel_limit = kwargs['decel_limit']
+        self.accel_limit = kwargs['accel_limit']
+        self.wheel_radius = kwargs['wheel_radius']
+        self.wheel_base = kwargs['wheel_base']
+        self.steer_ratio = kwargs['steer_ratio']
+        self.max_lat_accel = kwargs['max_lat_accel']
+        self.max_steer_angle = kwargs['max_steer_angle']
 
         # To be Updated in each cycle
         self.twist_command = None
@@ -62,7 +65,8 @@ class Controller(object):
         speed_command =  self.speed_PID.step(speed_error, self.sample_time)
         throttle_command, brake_command = self.get_speed_control_vector(speed_command)
         yaw_angle = self.LPF.filt(yaw_angle)
-        self.steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v)
+        # self.steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v) 
+        steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v)
 
         # Return throttle, brake, steer
-        return throttle_command, brake_command, self.steer
+        return throttle_command, brake_command, steer
