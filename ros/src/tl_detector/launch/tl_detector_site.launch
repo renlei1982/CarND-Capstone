@@ -2,6 +2,7 @@
 <launch>
     <node pkg="tl_detector" type="tl_detector.py" name="tl_detector" output="screen" cwd="node">
       <param name="path" value="$(find styx)../../../yolo/tf_models/yolo.pb" />
+      <param name="enabled" value="true" />
     </node>
     <node pkg="tl_detector" type="light_publisher.py" name="light_publisher" output="screen" cwd="node"/>
 </launch>

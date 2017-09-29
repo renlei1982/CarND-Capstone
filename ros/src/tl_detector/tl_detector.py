@@ -38,6 +38,11 @@ class TLDetector(object):
         simulator. When testing on the vehicle, the color state will not be available. You'll need to
         rely on the position of the light and the camera image to predict it.
         '''
+        self.state = TrafficLight.UNKNOWN
+        self.last_state = TrafficLight.UNKNOWN
+        self.last_wp = -1
+        self.state_count = 0
+
         sub3 = rospy.Subscriber('/vehicle/traffic_lights', TrafficLightArray, self.traffic_cb)
         sub6 = rospy.Subscriber('/image_color', Image, self.image_cb)
 
@@ -51,10 +56,9 @@ class TLDetector(object):
         self.light_classifier = TLClassifier(rospy.get_param('~path'))
         self.listener = tf.TransformListener()
 
-        self.state = TrafficLight.UNKNOWN
-        self.last_state = TrafficLight.UNKNOWN
-        self.last_wp = -1
-        self.state_count = 0
+        self.enabled = rospy.get_param('~enabled')
+        if not self.enabled:
+            rospy.logwarn('Traffic light detection is disabled')
 
         rospy.spin()
 
@@ -86,6 +90,8 @@ class TLDetector(object):
             msg (Image): image from car-mounted camera
 
         """
+        if not self.enabled:
+            return
         self.has_image = True
         self.camera_image = msg
         light_wp, state = self.process_traffic_lights()
