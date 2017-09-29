@@ -36,8 +36,6 @@ class DBWNode(object):
         rospy.init_node('dbw_node')
 
         # TODO: Create `TwistController` object
-<<<<<<< HEAD
-
         ctr_params = {
                 "vehicle_mass" : rospy.get_param('~vehicle_mass', 1736.35),
                 "fuel_capacity" : rospy.get_param('~fuel_capacity', 13.5),
@@ -53,11 +51,6 @@ class DBWNode(object):
 
 
         self.controller = Controller(**ctr_params)
-=======
-        self.controller = Controller()
-
-
->>>>>>> 961f3b786b44d299a39c778fd2f664bafbee8235
 
         self.steer_pub = rospy.Publisher('/vehicle/steering_cmd',
                                          SteeringCmd, queue_size=1)
@@ -66,7 +59,7 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        self.max_speed = 0.0
+        self.max_speed = 20.0
         # Set up the sample time point for loop and PID control
         self.start_time = 0.0
 
@@ -74,8 +67,8 @@ class DBWNode(object):
         self.yaw_angle = 0.0
         # init actual speed read
         self.actual_v = 0
+        self.enabled = True
 
-        # TODO: Arguments to be specified for TwistController
 
         # TODO: Subscribe to all the topics you need to
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_callback)
@@ -91,13 +84,15 @@ class DBWNode(object):
         #I guess this can be used to set the max allowable speed, not sure though
         #to be used in self.controller.control(...)
         self.max_speed = twist_command.twist.linear.x
+        self.max_speed = 20
 
     def current_velocity_callback(self, current_velocity):
         self.controller.current_velocity = current_velocity #maybe unnecessary
         self.actual_v = current_velocity.twist.linear.x
 
     def dbw_enabled_callback(self, dbw_enabled):
-        self.controller.enable = True #dbw_enabled;
+        self.controller.enabled = True #dbw_enabled;
+        self.enabled = True # dbw_enabled
 
 
     def loop(self):
@@ -116,10 +111,12 @@ class DBWNode(object):
             throttle, brake, steer = self.controller.control(self.max_speed, self.yaw_angle,
                     self.actual_v, True)
 
-            #if <dbw is enabled>:
+            if self.enabled:
+                self.publish(0.5, 0.0, steer)
+            else:
+                controller.speed_PID.reset()
 
-            self.publish(throttle, brake, steer)
-            # self.publish(1, 0, 0)
+            self.publish(0.5, 0.0, steer)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
