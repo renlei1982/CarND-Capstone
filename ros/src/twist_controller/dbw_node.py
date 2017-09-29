@@ -91,8 +91,8 @@ class DBWNode(object):
         self.actual_v = current_velocity.twist.linear.x
 
     def dbw_enabled_callback(self, dbw_enabled):
-        self.controller.enabled = True #dbw_enabled;
-        self.enabled = True # dbw_enabled
+        self.controller.enabled = dbw_enabled.data
+        self.enabled = dbw_enabled.data
 
 
     def loop(self):
@@ -112,11 +112,11 @@ class DBWNode(object):
                     self.actual_v, True)
 
             if self.enabled:
-                self.publish(0.5, 0.0, steer)
+                self.publish(throttle, brake, steer)
             else:
-                controller.speed_PID.reset()
+                self.controller.speed_PID.reset()
 
-            self.publish(0.5, 0.0, steer)
+            self.publish(throttle, brake, steer)
             rate.sleep()
 
     def publish(self, throttle, brake, steer):
