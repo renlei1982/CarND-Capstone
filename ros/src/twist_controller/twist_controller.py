@@ -31,7 +31,7 @@ class Controller(object):
         self.sample_time = 1/50 # initial value, gets updated in loop
 
 
-        self.speed_PID = PID(1.0, 0.0, 0.0) # Dummy values
+        self.speed_PID = PID(1.0, 0.05, 0.003) # Dummy values
 
 
         #initial control values	
@@ -66,7 +66,7 @@ class Controller(object):
         throttle_command, brake_command = self.get_speed_control_vector(speed_command)
         yaw_angle = self.LPF.filt(yaw_angle)
         # self.steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v) 
-        steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v)
+        steer = self.yaw_ctrl.get_steering(target_v, yaw_angle, actual_v)
 
         # Return throttle, brake, steer
         return throttle_command, brake_command, steer
