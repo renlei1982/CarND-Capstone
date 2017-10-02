@@ -75,6 +75,7 @@ class DBWNode(object):
         rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback,
                 queue_size =1)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_callback)
+        rospy.Subscriber('/final_waypoints', Lane, self.final_waypoints_cb)
 
         self.loop()
 
@@ -93,6 +94,9 @@ class DBWNode(object):
         self.controller.enabled = dbw_enabled.data
         self.enabled = dbw_enabled.data
 
+    def final_waypoints_cb(self, msg):
+        self.target_v = msg.waypoints[0].twist.twist.linear.x
+
 
     def loop(self):
 
@@ -107,7 +111,7 @@ class DBWNode(object):
 
             self.controller.sample_time = rospy.Time.now().to_sec() - self.start_time
             self.start_time = rospy.Time.now().to_sec()
-            throttle, brake, steer = self.controller.control(self.max_speed, self.yaw_angle,
+            throttle, brake, steer = self.controller.control(self.target_v, self.yaw_angle,
                     self.actual_v, True)
 
             if self.enabled:
