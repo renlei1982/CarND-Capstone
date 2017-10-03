@@ -111,7 +111,7 @@ class DBWNode(object):
 
             self.controller.sample_time = rospy.Time.now().to_sec() - self.start_time
             self.start_time = rospy.Time.now().to_sec()
-            throttle, brake, steer = self.controller.control(self.target_v, self.yaw_angle,
+            throttle, brake, steer = self.controller.control(self.max_speed, self.yaw_angle,
                     self.actual_v, True)
 
             if self.enabled:

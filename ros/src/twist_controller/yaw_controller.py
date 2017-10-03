@@ -3,9 +3,9 @@ from math import atan
 class YawController(object):
     def __init__(self, wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle):
         self.wheel_base = wheel_base
-        self.steer_ratio = steer_ratio * 8
+        self.steer_ratio = steer_ratio * 0.8
         self.min_speed = min_speed
-        self.max_lat_accel = max_lat_accel
+        self.max_lat_accel = max_lat_accel * 12
 
         self.min_angle = -max_steer_angle
         self.max_angle = max_steer_angle

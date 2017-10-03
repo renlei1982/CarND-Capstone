@@ -43,7 +43,8 @@ class Controller(object):
                                       self.max_lat_accel,
                                       self.max_steer_angle) # Set the min_speed as 0
 
-        self.LPF = LowPassFilter(0.96, 1.0)
+        self.LPF_velocity = LowPassFilter(0.80, 1.0)
+        self.LPF_angle = LowPassFilter(0.96, 1.0)
 
     def get_speed_control_vector(self, speed_command):
         #default control behavior, don't do anything
@@ -61,10 +62,11 @@ class Controller(object):
     def control(self, target_v, yaw_angle, actual_v, dbw_status):
         # TODO: Change the arg, kwarg list to suit your needs
         # If we drive slower than the target sppeed, we push the gas pedal (throttle), othwise not
+        actual_v = self.LPF_velocity(actual_v)
         speed_error = target_v - actual_v
         speed_command =  self.speed_PID.step(speed_error, self.sample_time)
         throttle_command, brake_command = self.get_speed_control_vector(speed_command)
-        yaw_angle = self.LPF.filt(yaw_angle)
+        yaw_angle = self.LPF_angle.filt(yaw_angle)
         # self.steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v) 
         steer = self.yaw_ctrl.get_steering(target_v, yaw_angle, actual_v)
 
