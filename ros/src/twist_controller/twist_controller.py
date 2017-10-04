@@ -31,7 +31,7 @@ class Controller(object):
         self.sample_time = 1/50 # initial value, gets updated in loop
 
 
-        self.speed_PID = PID(1.0, 0.01, 2) # Dummy values
+        self.speed_PID = PID(1.0, 0.001, 2) # Dummy values
 
 
         #initial control values	
@@ -44,8 +44,8 @@ class Controller(object):
                                       self.max_steer_angle) # Set the min_speed as 0
 
         self.LPF_velocity = LowPassFilter(0.90, 1.0)
-        self.LPF_target_v = LowPassFilter(1.0, 0.8)
-        self.LPF_angle = LowPassFilter(0.90, 1.0)
+        self.LPF_target_v = LowPassFilter(0.90, 1.0)
+        self.LPF_angle = LowPassFilter(0.98, 1.0)
 
     def get_speed_control_vector(self, speed_command):
         #default control behavior, don't do anything
