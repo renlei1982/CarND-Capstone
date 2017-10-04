@@ -71,10 +71,11 @@ class DBWNode(object):
 
 
         # TODO: Subscribe to all the topics you need to
-        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_callback)
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_callback, queue_size = 1)
         rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback,
                 queue_size =1)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_callback)
+        #rospy.Subscriber('/final_waypoints', Lane, self.final_waypoints_cb)
 
         self.loop()
 
@@ -93,10 +94,13 @@ class DBWNode(object):
         self.controller.enabled = dbw_enabled.data
         self.enabled = dbw_enabled.data
 
+    #def final_waypoints_cb(self, msg):
+        #self.target_v = msg.waypoints[0].twist.twist.linear.x
+
 
     def loop(self):
 
-        rate = rospy.Rate(50) # 50Hz
+        rate = rospy.Rate(10) # 50Hz
 
         while not self.start_time:
             self.start_time = rospy.Time.now().to_sec()
