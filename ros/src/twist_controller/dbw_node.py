@@ -71,7 +71,7 @@ class DBWNode(object):
 
 
         # TODO: Subscribe to all the topics you need to
-        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_callback)
+        rospy.Subscriber('/twist_cmd', TwistStamped, self.twist_cmd_callback, queue_size = 1)
         rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback,
                 queue_size =1)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_callback)
@@ -100,7 +100,7 @@ class DBWNode(object):
 
     def loop(self):
 
-        rate = rospy.Rate(50) # 50Hz
+        rate = rospy.Rate(10) # 50Hz
 
         while not self.start_time:
             self.start_time = rospy.Time.now().to_sec()
