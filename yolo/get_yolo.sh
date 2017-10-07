@@ -4,6 +4,12 @@
 mkdir -p keras_models
 
 # Get YAD2K
+dir = "YAD2K"
+if [ -d "$dir"]; then
+  cd YAD2K
+  git reset --hard
+  cd ..
+fi
 git clone https://github.com/allanzelener/YAD2K.git
 
 # Download weights and config files for YOLO models
@@ -29,3 +35,7 @@ sed -i 's/read(16)/read(20)/g' yad2k.py
 cd ..
 python load_yolo.py keras_models/yolo.h5 tf_models/
 python load_yolo.py keras_models/tiny-yolo.h5 tf_models/
+
+# Split the full YOLO model into 50MB chunks to fit on Github
+cd tf_models
+split -b 52428800 -d yolo.pb yolo.pb.

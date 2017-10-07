@@ -11,6 +11,10 @@ import tf
 import cv2
 import yaml
 import numpy as np
+import os
+from fnmatch import fnmatch
+import shutil
+
 
 STATE_COUNT_THRESHOLD = 3
 LIGHT_HORIZON = 100 # How many waypoints ahead to look for light
@@ -52,8 +56,25 @@ class TLDetector(object):
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
-        rospy.loginfo('Loading traffic light classifier from {0}'.format(rospy.get_param('~path')))
-        self.light_classifier = TLClassifier(rospy.get_param('~path'))
+        model_file = rospy.get_param('~path')
+        rospy.loginfo('Loading traffic light classifier from {0}'.format(model_file))
+        # Prepare model file
+        if not os.path.isfile(model_file):
+            # Try to re-assemble the file from chunks
+            directory = os.path.dirname(model_file)
+            model_file_name = os.path.basename(model_file)
+            file_names = sorted(os.listdir(directory))
+            model_files = [f for f in file_names if fnmatch(f, model_file_name + '.*')]
+            if len(model_files) == 0:
+                rospy.logerr('No Tensorflow model files found')
+                raise IOError()
+            rospy.logwarn('Reconstructing model from {0} file parts'.format(len(model_files)))
+            with open(model_file, 'wb') as fcomplete:
+                for f in model_files:
+                    rospy.logwarn('Reading {0} ...'.format(f))
+                    with open(os.path.join(directory, f), 'rb') as fpart:
+                        shutil.copyfileobj(fpart, fcomplete, 1024 * 1024 * 10)
+        self.light_classifier = TLClassifier(model_file)
         self.listener = tf.TransformListener()
 
         self.enabled = rospy.get_param('~enabled')
