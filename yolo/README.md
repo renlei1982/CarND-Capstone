@@ -10,6 +10,8 @@ We are using YOLO trained against the [COCO dataset](http://cocodataset.org) as 
 
 ## Preparation
 
+Install Keras version 2.0.3 before running the `get_yolo` script.
+
 Run `./get_yolo.sh`.  This will do the following:
 1. Download the weights and model definition files for YOLO;
 2. Download [YAD2K](https://github.com/allanzelener/YAD2K), which converts these files to Keras models;
