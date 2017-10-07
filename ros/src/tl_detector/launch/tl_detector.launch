@@ -2,6 +2,6 @@
 <launch>
     <node pkg="tl_detector" type="tl_detector.py" name="tl_detector" output="screen" cwd="node">
       <param name="path" value="$(find styx)../../../yolo/tf_models/tiny-yolo.pb" />
-      <param name="enabled" value="false" />
+      <param name="enabled" value="true" />
     </node>
 </launch>
