@@ -171,7 +171,8 @@ class TLDetector(object):
 
         if light:
             state = self.get_light_state(light)
-            rospy.loginfo('Light at waypoint {0} classified as {1}'.format(light, state))
+            colour_name = [k for k, v in vars(TrafficLight).items() if v == state][0]
+            rospy.loginfo('Light at waypoint {0} classified as {1}'.format(light, colour_name))
             return light, state
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN

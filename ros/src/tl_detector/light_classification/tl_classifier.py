@@ -67,6 +67,33 @@ class TLClassifier(object):
         if num_lights == 0:
             TrafficLight.UNKNOWN
         else:
-            # TODO: Classify light colour
-            pass
-        return TrafficLight.UNKNOWN
+            # Compute probability weighted average of light colour
+            scores = {TrafficLight.UNKNOWN: 0.0,
+                      TrafficLight.RED: 0.0}
+            annotated_image = image.copy()
+            for box, score in zip(out_boxes, out_scores):
+                colour = self.light_colour(image, box)
+                scores[colour] = scores[colour] + score
+            # Return colour with highest score
+            return max(scores, key=scores.get)
+
+    def light_colour(self, img, box):
+        # Crop around the box
+        top, left, bottom, right = box
+        light_img = img[int(top):int(bottom), int(left):int(right), :]
+        if light_img.size == 0:
+            return TrafficLight.UNKNOWN
+        # Convert to HSV
+        hsv = cv2.cvtColor(light_img, cv2.COLOR_BGR2HSV)
+        # Crop edges
+        hsv = hsv[int(0.05 * hsv.shape[0]):int(0.95 * hsv.shape[0]), int(0.05 * hsv.shape[1]):int(0.95 * hsv.shape[1]), :]
+        # Get bright pixels
+        h = hsv[:, :, 0]
+        red_pixels = (np.sum(cv2.inRange(hsv, (0, 120, 220), (10, 255, 255))) + \
+                      np.sum(cv2.inRange(hsv, (170, 120, 220), (180, 255, 255)))) / 255
+        # Proportion of red pixels in box
+        prop_red = red_pixels / (hsv.shape[0] * hsv.shape[1])
+        if (prop_red > 0.03):
+            return TrafficLight.RED
+        else:
+            return TrafficLight.UNKNOWN

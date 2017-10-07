@@ -6,7 +6,7 @@ Two versions of YOLO are available:
 * Standard YOLO, which detects bounding boxes accurately on both the simulator and the real-world data, taking around 3.5s per frame on a CPU;
 * Tiny YOLO, a faster version of the model that is still good enough for the simulator data and takes around 0.4s per frame on a CPU.
 
-We are using YOLO trained against the (COCO dataset)[http://cocodataset.org] as this includes traffic lights as an object class.
+We are using YOLO trained against the [COCO dataset](http://cocodataset.org) as this includes traffic lights as an object class.
 
 ## Preparation
 
