@@ -67,7 +67,7 @@ class WaypointUpdater(object):
         relative_angle = (angle - yaw) % (2 * math.pi)
 
         CTE = math.sqrt((wp.pose.pose.position.y - y)**2 + (wp.pose.pose.position.x - x)**2) * math.sin(relative_angle)
-        self.cte_pub.publish(Int32(cte))
+        self.cte_pub.publish(Int32(CTE))
         
         if (relative_angle > 0.5 * math.pi) & (relative_angle < 1.5 * math.pi):
             # Behind, so return next waypoint index
