@@ -68,9 +68,6 @@ class WaypointUpdater(object):
         # Is it in front of or behind the vehicle?
         angle = math.atan2(wp.pose.pose.position.y - y, wp.pose.pose.position.x - x)
         relative_angle = (angle - yaw) % (2 * math.pi)
-
-        CTE = math.sqrt((wp.pose.pose.position.y - y)**2 + (wp.pose.pose.position.x - x)**2) * math.sin(relative_angle)
-        self.cte_pub.publish(Int32(CTE))
         
         if (relative_angle > 0.5 * math.pi) & (relative_angle < 1.5 * math.pi):
             # Behind, so return next waypoint index
@@ -78,6 +75,17 @@ class WaypointUpdater(object):
         else:
             # In front, so return this one
             self.closest_point = closest
+
+
+        wp_1 = self.base_waypoints[self.closest_point]
+        wp_2 = self.base_waypoints[(self.closest_point - 1) % len(self.base_waypoints)]
+        
+        angle1 = math.atan2(y - wp_1.pose.pose.position.y, x - wp_1.pose.pose.position.x)
+        angle2 = math.atan2(wp_2.pose.pose.position.y - wp_1.pose.pose.position.y, wp_2.pose.pose.position.x - wp_1.pose.pose.position.x)
+        
+
+        CTE = math.sqrt((wp_1.pose.pose.position.y - y)**2 + (wp_1.pose.pose.position.x - x)**2) * math.sin(angle1 - angle2)
+        self.cte_pub.publish(Int32(CTE))
 
         return self.closest_point
 
