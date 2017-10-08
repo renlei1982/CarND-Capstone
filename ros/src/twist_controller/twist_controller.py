@@ -32,7 +32,7 @@ class Controller(object):
 
 
         self.speed_PID = PID(1.0, 0.001, 0.2) # Dummy values
-        self.steer_PID = PID(10.0, 0.2, 10.0, mn = -1, mx = 1) # To be adjusted
+        self.steer_PID = PID(10.0, 5.0, 10.0, mn = -1, mx = 1) # To be adjusted
 
 
         #initial control values	
