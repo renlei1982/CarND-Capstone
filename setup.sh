@@ -29,7 +29,7 @@ sudo apt-get install -y ros-$ROS_DISTRO-dbw-mkz
 sudo apt-get upgrade -y
 
 # Install Python packages
-sed -i 's/tensorflow==/tensorflow-gpu==/g’ requirements.txt
+sed -i 's/tensorflow==/tensorflow-gpu==/g' requirements.txt
 sudo pip install -r requirements.txt
 
 # Install required ros dependencies
