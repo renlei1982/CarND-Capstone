@@ -5,7 +5,7 @@ from std_msgs.msg import Bool
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped, PoseStamped
 from styx_msgs.msg import Lane, Waypoint
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Float32
 import math
 
 from twist_controller import Controller
@@ -82,7 +82,7 @@ class DBWNode(object):
                 queue_size =1)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_callback)
         #rospy.Subscriber('/final_waypoints', Lane, self.final_waypoints_cb)
-        rospy.Subscriber('/current_cte', Int32, self.cte_callback)
+        rospy.Subscriber('/current_cte', Float32, self.cte_callback)
         
 
         self.loop()

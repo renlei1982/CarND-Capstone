@@ -3,7 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Float32
 from geometry_msgs.msg import TwistStamped
 
 import math
@@ -53,7 +53,7 @@ class WaypointUpdater(object):
         # Publisher for the current waypoint id
         self.waypoint_id_pub = rospy.Publisher('/current_waypoint_id', Int32, queue_size=1)
 
-        self.cte_pub = rospy.Publisher('/current_cte', Int32, queue_size=1)
+        self.cte_pub = rospy.Publisher('/current_cte', Float32, queue_size=1)
 
         # Make the closest point id callable in the class
         self.closest_point = 0
@@ -87,7 +87,7 @@ class WaypointUpdater(object):
         
 
         CTE = math.sqrt((wp_1.pose.pose.position.y - y)**2 + (wp_1.pose.pose.position.x - x)**2) * math.sin(angle1 - angle2)
-        self.cte_pub.publish(Int32(CTE))
+        self.cte_pub.publish(Float32(CTE))
 
         return self.closest_point
 
