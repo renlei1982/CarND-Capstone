@@ -62,7 +62,10 @@ class WaypointUpdater(object):
 
     def next_waypoint(self, x, y, yaw):
         # Find the closest waypoint
-        dist = [(x - wp.pose.pose.position.x)**2 + (y - wp.pose.pose.position.y)**2 for wp in self.base_waypoints[self.closest_point:self.closest_point + LOOKAHEAD_WPS]]
+        dist = [(x - wp.pose.pose.position.x)**2 + (y - wp.pose.pose.position.y)**2 for wp in self.base_waypoints]
+
+        # Find the closest waypoint in the last 'final_waypoints' list
+        # dist = [(x - wp.pose.pose.position.x)**2 + (y - wp.pose.pose.position.y)**2 for wp in self.base_waypoints[self.closest_point:self.closest_point + LOOKAHEAD_WPS]]
         closest = np.argmin(dist)
         wp = self.base_waypoints[closest]
         # Is it in front of or behind the vehicle?
