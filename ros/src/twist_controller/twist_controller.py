@@ -69,7 +69,7 @@ class Controller(object):
         speed_error = target_v - actual_v
         speed_command =  self.speed_PID.step(speed_error, self.sample_time)
         throttle_command, brake_command = self.get_speed_control_vector(speed_command)
-        steer = self.steer_PID.step(cte_value, self.sample_time)
+        steer = self.steer_PID.step((0.0 - cte_value), self.sample_time)
         # yaw_angle = self.LPF_angle.filt(yaw_angle)
         # self.steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v) 
         # steer = self.yaw_ctrl.get_steering(target_v, yaw_angle, actual_v)
