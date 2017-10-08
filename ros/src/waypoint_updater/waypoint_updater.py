@@ -53,6 +53,8 @@ class WaypointUpdater(object):
         # Publisher for the current waypoint id
         self.waypoint_id_pub = rospy.Publisher('/current_waypoint_id', Int32, queue_size=1)
 
+        self.cte_pub = rospy.Publisher('/current_cte', Int32, queue_size=1)
+
         rospy.spin()
 
     def next_waypoint(self, x, y, yaw):
@@ -63,12 +65,18 @@ class WaypointUpdater(object):
         # Is it in front of or behind the vehicle?
         angle = math.atan2(wp.pose.pose.position.y - y, wp.pose.pose.position.x - x)
         relative_angle = (angle - yaw) % (2 * math.pi)
+
+        CTE = math.sqrt((wp.pose.pose.position.y - y)**2 + (wp.pose.pose.position.x - x)**2) * math.sin(relative_angle)
+        self.cte_pub.publish(Int32(cte))
+        
         if (relative_angle > 0.5 * math.pi) & (relative_angle < 1.5 * math.pi):
             # Behind, so return next waypoint index
-            return (closest + 1) % len(self.base_waypoints)
+            closest_point = (closest + 1) % len(self.base_waypoints)
         else:
             # In front, so return this one
-            return closest
+            closest_point = closest
+
+        return closest_point
 
     def update_speeds(self, car_wp_id) :
         #Nothing has changed, no need to change speeds
