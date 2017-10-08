@@ -71,7 +71,7 @@ class DBWNode(object):
         self.actual_v = 0
 
         #init cte value
-        self.cte = 0
+        self.cte_value = 0
         
         self.enabled = True
 
