@@ -105,7 +105,7 @@ class DBWNode(object):
     #def final_waypoints_cb(self, msg):
         #self.target_v = msg.waypoints[0].twist.twist.linear.x
 
-    def cte_callback(self.msg):
+    def cte_callback(self, msg):
         self.cte_value = msg.data
 
 
