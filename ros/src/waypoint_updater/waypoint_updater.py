@@ -3,7 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Float32
 from geometry_msgs.msg import TwistStamped
 
 import math
@@ -53,22 +53,46 @@ class WaypointUpdater(object):
         # Publisher for the current waypoint id
         self.waypoint_id_pub = rospy.Publisher('/current_waypoint_id', Int32, queue_size=1)
 
+        self.cte_pub = rospy.Publisher('/current_cte', Float32, queue_size=1)
+
+        # Make the closest point id callable in the class
+        self.closest_point = 0
+
         rospy.spin()
 
     def next_waypoint(self, x, y, yaw):
         # Find the closest waypoint
         dist = [(x - wp.pose.pose.position.x)**2 + (y - wp.pose.pose.position.y)**2 for wp in self.base_waypoints]
+
+        # Find the closest waypoint in the last 'final_waypoints' list
+        # dist = [(x - wp.pose.pose.position.x)**2 + (y - wp.pose.pose.position.y)**2 for wp in self.base_waypoints[self.closest_point:self.closest_point + LOOKAHEAD_WPS]]
         closest = np.argmin(dist)
         wp = self.base_waypoints[closest]
         # Is it in front of or behind the vehicle?
         angle = math.atan2(wp.pose.pose.position.y - y, wp.pose.pose.position.x - x)
         relative_angle = (angle - yaw) % (2 * math.pi)
+        
         if (relative_angle > 0.5 * math.pi) & (relative_angle < 1.5 * math.pi):
             # Behind, so return next waypoint index
-            return (closest + 1) % len(self.base_waypoints)
+            self.closest_point = (closest + 1) % len(self.base_waypoints)
         else:
             # In front, so return this one
-            return closest
+            self.closest_point = closest
+
+        # Calculate the cte value based on the closest point and the current x, y
+        wp_1 = self.base_waypoints[self.closest_point]
+        wp_2 = self.base_waypoints[(self.closest_point + 1) % len(self.base_waypoints)]
+
+        # Get the angle between the current point and the next waypoint
+        angle1 = math.atan2(y - wp_1.pose.pose.position.y, x - wp_1.pose.pose.position.x)
+        # Get the angle of the waypoint
+        angle2 = math.atan2(wp_2.pose.pose.position.y - wp_1.pose.pose.position.y, wp_2.pose.pose.position.x - wp_1.pose.pose.position.x)
+        
+
+        CTE = math.sqrt((wp_1.pose.pose.position.y - y)**2 + (wp_1.pose.pose.position.x - x)**2) * math.sin(angle2 - angle1)
+        self.cte_pub.publish(Float32(CTE))
+
+        return self.closest_point
 
     def update_speeds(self, car_wp_id) :
         #Nothing has changed, no need to change speeds

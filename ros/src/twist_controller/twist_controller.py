@@ -31,17 +31,18 @@ class Controller(object):
         self.sample_time = 1/50 # initial value, gets updated in loop
 
 
-        self.speed_PID = PID(1.0, 0.001, 0.2) # Dummy values
+        self.speed_PID = PID(0.2, 0.01, 0.1, mn = -1, mx = 1) # Dummy values
+        self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
 
 
         #initial control values	
         self.steer = 0.0
 
-        self.yaw_ctrl = YawController(self.wheel_base,
-                                      self.steer_ratio,
-                                      2.0,
-                                      self.max_lat_accel,
-                                      self.max_steer_angle) # Set the min_speed as 0
+        # self.yaw_ctrl = YawController(self.wheel_base,
+        #                              self.steer_ratio,
+        #                              2.0,
+        #                              self.max_lat_accel,
+        #                              self.max_steer_angle) # Set the min_speed as 0
 
         self.LPF_velocity = LowPassFilter(0.90, 1.0)
         self.LPF_target_v = LowPassFilter(0.90, 1.0)
@@ -60,7 +61,7 @@ class Controller(object):
             brake = max(min(abs(speed_command), 1.0), 0.0)
         return throttle, brake
 
-    def control(self, target_v, yaw_angle, actual_v, dbw_status):
+    def control(self, target_v, yaw_angle, actual_v, cte_value, dbw_status):
         # TODO: Change the arg, kwarg list to suit your needs
         # If we drive slower than the target sppeed, we push the gas pedal (throttle), othwise not
         actual_v = self.LPF_velocity.filt(actual_v)
@@ -68,9 +69,10 @@ class Controller(object):
         speed_error = target_v - actual_v
         speed_command =  self.speed_PID.step(speed_error, self.sample_time)
         throttle_command, brake_command = self.get_speed_control_vector(speed_command)
-        yaw_angle = self.LPF_angle.filt(yaw_angle)
+        steer = self.steer_PID.step(cte_value, self.sample_time)
+        # yaw_angle = self.LPF_angle.filt(yaw_angle)
         # self.steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v) 
-        steer = self.yaw_ctrl.get_steering(target_v, yaw_angle, actual_v)
+        # steer = self.yaw_ctrl.get_steering(target_v, yaw_angle, actual_v)
 
         # Return throttle, brake, steer
         return throttle_command, brake_command, steer

@@ -3,7 +3,9 @@
 import rospy
 from std_msgs.msg import Bool
 from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import TwistStamped, PoseStamped
+from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32, Float32
 import math
 
 from twist_controller import Controller
@@ -67,6 +69,10 @@ class DBWNode(object):
         self.yaw_angle = 0.0
         # init actual speed read
         self.actual_v = 0
+
+        #init cte value
+        self.cte_value = 0
+        
         self.enabled = True
 
 
@@ -76,6 +82,8 @@ class DBWNode(object):
                 queue_size =1)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbw_enabled_callback)
         #rospy.Subscriber('/final_waypoints', Lane, self.final_waypoints_cb)
+        rospy.Subscriber('/current_cte', Float32, self.cte_callback)
+        
 
         self.loop()
 
@@ -97,6 +105,9 @@ class DBWNode(object):
     #def final_waypoints_cb(self, msg):
         #self.target_v = msg.waypoints[0].twist.twist.linear.x
 
+    def cte_callback(self, msg):
+        self.cte_value = msg.data
+
 
     def loop(self):
 
@@ -112,7 +123,7 @@ class DBWNode(object):
             self.controller.sample_time = rospy.Time.now().to_sec() - self.start_time
             self.start_time = rospy.Time.now().to_sec()
             throttle, brake, steer = self.controller.control(self.max_speed, self.yaw_angle,
-                    self.actual_v, True)
+                    self.actual_v, self.cte_value, True)
 
             if self.enabled:
                 self.publish(throttle, brake, steer)
