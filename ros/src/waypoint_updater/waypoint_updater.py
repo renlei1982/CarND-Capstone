@@ -81,7 +81,7 @@ class WaypointUpdater(object):
 
         # Calculate the cte value based on the closest point and the current x, y
         wp_1 = self.base_waypoints[self.closest_point]
-        wp_2 = self.base_waypoints[(self.closest_point - 1) % len(self.base_waypoints)]
+        wp_2 = self.base_waypoints[(self.closest_point + 1) % len(self.base_waypoints)]
 
         # Get the angle between the current point and the next waypoint
         angle1 = math.atan2(y - wp_1.pose.pose.position.y, x - wp_1.pose.pose.position.x)
