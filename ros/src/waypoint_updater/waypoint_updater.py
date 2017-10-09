@@ -89,7 +89,7 @@ class WaypointUpdater(object):
         angle2 = math.atan2(wp_2.pose.pose.position.y - wp_1.pose.pose.position.y, wp_2.pose.pose.position.x - wp_1.pose.pose.position.x)
         
 
-        CTE = math.sqrt((wp_1.pose.pose.position.y - y)**2 + (wp_1.pose.pose.position.x - x)**2) * math.sin(angle1 - angle2)
+        CTE = math.sqrt((wp_1.pose.pose.position.y - y)**2 + (wp_1.pose.pose.position.x - x)**2) * math.sin(angle2 - angle1)
         self.cte_pub.publish(Float32(CTE))
 
         return self.closest_point
