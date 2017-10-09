@@ -31,8 +31,8 @@ class Controller(object):
         self.sample_time = 1/50 # initial value, gets updated in loop
 
 
-        self.speed_PID = PID(1.0, 0.001, 0.2) # Dummy values
-        self.steer_PID = PID(1.0, 0.0001, 0.1, mn = -1, mx = 1) # To be adjusted
+        self.speed_PID = PID(0.2, 0.01, 0.1) # Dummy values
+        self.steer_PID = PID(1.0, 0.001, 0.5, mn = -1, mx = 1) # To be adjusted
 
 
         #initial control values	
