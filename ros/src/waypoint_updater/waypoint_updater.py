@@ -101,12 +101,17 @@ class WaypointUpdater(object):
         next_tl_wp = waypoints[to_tl_steps]
         next_tl_wp.twist.twist.linear.x = 0.
         for wp in waypoints[0:to_tl_steps][::-1]:
-            dist = self.distance(wp.pose.pose.position, next_tl_wp.pose.pose.position)
+            dist = self.distance_2(wp.pose.pose.position, next_tl_wp.pose.pose.position)
             vel = math.sqrt(2 * MAX_DECEL * dist) * 3.6
             if vel < 1.:
                 vel = 0.
             wp.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
         return waypoints
+
+
+    def distance_2(self, p1, p2):
+        x, y, z = p1.x - p2.x, p1.y - p2.y, p1.z - p2.z
+        return math.sqrt(x*x + y*y + z*z)
 
 
     """
