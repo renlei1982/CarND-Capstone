@@ -66,8 +66,10 @@ class WaypointUpdater(object):
 
         # Find the closest waypoint in the last 'final_waypoints' list
         # dist = [(x - wp.pose.pose.position.x)**2 + (y - wp.pose.pose.position.y)**2 for wp in self.base_waypoints[self.closest_point:self.closest_point + LOOKAHEAD_WPS]]
+
         closest = np.argmin(dist)
         wp = self.base_waypoints[closest]
+
         # Is it in front of or behind the vehicle?
         angle = math.atan2(wp.pose.pose.position.y - y, wp.pose.pose.position.x - x)
         relative_angle = (angle - yaw) % (2 * math.pi)
