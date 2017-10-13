@@ -27,6 +27,8 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 MIN_RED_TL_DIST = 100 #Min distance to consider a RED traffic light to stop
+MAX_DECEL = 1.0  # Max decelaration a
+
 
 
 class WaypointUpdater(object):
