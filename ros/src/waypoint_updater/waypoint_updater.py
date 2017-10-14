@@ -95,57 +95,6 @@ class WaypointUpdater(object):
         self.cte_pub.publish(Float32(CTE))
 
         return self.closest_point
-    
-    def create_speed_profile(self, car_wp_id, red_wp_id):
-        speed_envelope = self.base_waypoints[car_wp_id : red_wp_id]
-        for wp in speed_envelope:
-            dist_to_red = self.distance(self.base_waypoints, car_wp_id, red_wp_id) - 10
-            speedMPS = self.actual_v * 0.44704 
-            time_to_red = (dist_to_red) / speedMPS if abs(speedMPS) > 0. else 0.
-            if time_to_red < 1. :
-                wp.twist.twist.linear.x = 0
-            else:
-                wp.twist.twist.linear.x = dist_to_red / time_to_red
-    	speed_envelope[-1] = 0 #The last one needs to be 0 anyways.
-        return speed_envelope
-
-
-
-
-
-    def update_speeds(self, car_wp_id) :
-        #Nothing has changed, no need to change speeds
-        if self.next_red_tl_wp != None : #A red light was just detected
-            dist_to_rtl = self.distance(self.base_waypoints, car_wp_id, self.next_red_tl_wp) - 10
-            speedMPS = self.actual_v * 0.44704 
-            time_to_rtl = (dist_to_rtl) / speedMPS if abs(speedMPS) > 0. else 0.
-            if dist_to_rtl < MIN_RED_TL_DIST and car_wp_id < self.next_red_tl_wp : # use time instead?
-                wp_i = self.next_red_tl_wp
-                wp_speed = 0
-                #rospy.logwarn('Car vel: {0}.'.format(speedMPS))
-                dist_wp_to_rtl = 0
-                #Distance threshold to set zero speed before red TL
-                wp_dist_th = 20
-
-                while wp_i > car_wp_id :
-                    self.set_waypoint_velocity(self.base_waypoints, wp_i, wp_speed)
-                    dist_wp_to_rtl = self.distance(self.base_waypoints, wp_i, self.next_red_tl_wp)
-                    wp_i -= 1
-                    if dist_wp_to_rtl > wp_dist_th :
-                        break
-
-                while wp_i > car_wp_id :
-                    dist_wp_to_rtl = self.distance(self.base_waypoints, wp_i, self.next_red_tl_wp)
-                    #Computing speed proportionally to distance
-                    wp_speed = dist_wp_to_rtl * speedMPS / dist_to_rtl 
-                    self.set_waypoint_velocity(self.base_waypoints, wp_i, wp_speed)
-                    #rospy.logwarn('Speed {0}, wp {1}.'.format(wp_speed, wp_i))
-                    wp_i -= 1
-                self.set_waypoint_velocity(self.base_waypoints, wp_i, wp_speed)
-                
-        else : #Otherwise, next_red_tl_wp is None and last_red_tl_wp holds the wp of the last red tl detected
-            #compute speeds for target speed
-            pass
 
     def current_velocity_callback(self, current_velocity) :
         self.actual_v = current_velocity.twist.linear.x    
@@ -160,8 +109,6 @@ class WaypointUpdater(object):
                                                               msg.pose.orientation.w])
         # Find the index of the next waypoint
         next_wp_id = self.next_waypoint(msg.pose.position.x, msg.pose.position.y, yaw)
-        #Computing wp speeds, using closest wp 
-        self.update_speeds(next_wp_id)
         rospy.loginfo('Next waypoint id = {0}'.format(next_wp_id))
         self.waypoint_id_pub.publish(Int32(next_wp_id))
         # Prepare a list of the upcoming waypoints
