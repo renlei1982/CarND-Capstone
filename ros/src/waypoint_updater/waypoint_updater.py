@@ -95,6 +95,23 @@ class WaypointUpdater(object):
         self.cte_pub.publish(Float32(CTE))
 
         return self.closest_point
+    
+    def create_speed_profile(self, car_wp_id, red_wp_id):
+        speed_envelope = self.base_waypoints[car_wp_id : red_wp_id]
+        for wp in speed_envelope:
+            dist_to_red = self.distance(self.base_waypoints, car_wp_id, red_wp_id) - 10
+            speedMPS = self.actual_v * 0.44704 
+            time_to_red = (dist_to_red) / speedMPS if abs(speedMPS) > 0. else 0.
+            if time_to_red < 1. :
+                wp.twist.twist.linear.x = 0
+            else:
+                wp.twist.twist.linear.x = dist_to_red / time_to_red
+    	speed_envelope[-1] = 0 #The last one needs to be 0 anyways.
+        return speed_envelope
+
+
+
+
 
     def update_speeds(self, car_wp_id) :
         #Nothing has changed, no need to change speeds
