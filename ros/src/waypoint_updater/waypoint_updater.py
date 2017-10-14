@@ -9,6 +9,7 @@ from geometry_msgs.msg import TwistStamped
 import math
 import tf
 import numpy as np
+from speed_envelope import SpeedEnvelope
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -49,7 +50,7 @@ class WaypointUpdater(object):
 
 
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
-
+        
         # Publisher for the current waypoint id
         self.waypoint_id_pub = rospy.Publisher('/current_waypoint_id', Int32, queue_size=1)
 
@@ -57,6 +58,11 @@ class WaypointUpdater(object):
 
         # Make the closest point id callable in the class
         self.closest_point = 0
+
+        #Init the SpeedEnvelope
+        self.envelope = SpeedEnvelope(self.base_waypoints, safety_distance = 10)
+        self.stop_at_red_wps = None
+        self.red_tl_approach = False
 
         rospy.spin()
 
@@ -117,7 +123,11 @@ class WaypointUpdater(object):
         # Prepare message
         msg = Lane(waypoints=upcoming_waypoints)
         # Publish it
-        self.final_waypoints_pub.publish(msg)
+        if self.red_tl_approach:
+            msg = Lane(waypoints = self.stop_at_red_wps)            
+            self.final_waypoints_pub.publish(msg)
+        else:
+            self.final_waypoints_pub.publish(msg)
 
     def waypoints_cb(self, waypoints):
         self.base_waypoints = waypoints.waypoints
@@ -134,8 +144,20 @@ class WaypointUpdater(object):
         else :
             self.next_red_tl_wp = wp_id
             #rospy.logwarn('Next RED traffic light val = {0}'.format(self.base_waypoints[wp_id].pose))
+        
+        # First implementation of speed envelope. 
+        #We need to make sure that this gets created once, not every time a red is detected
+        self.envelope.base_wps = self.base_waypoints
+        if self.distance(self.base_waypoints, self.closest_point, self.next_red_tl_wp) < 100:
+            self.stop_at_red_wps = self.envelope.get_envelope(self.closest_point, self.next_red_tl_wp, self.actual_v)
+            self.red_tl_approach = True
+            rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
+        else:
+            self.red_tl_approach = False
+            rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
 
 
+        
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
@@ -148,6 +170,8 @@ class WaypointUpdater(object):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
     def distance(self, waypoints, wp1, wp2):
+        if wp1 == None or wp2 == None: 
+            return 1000 #Far away to be replaced by something safe
         dist = 0
         dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
         for i in range(wp1, wp2+1):
