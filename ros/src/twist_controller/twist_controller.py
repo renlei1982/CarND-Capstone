@@ -64,8 +64,8 @@ class Controller(object):
     def control(self, target_v, yaw_angle, actual_v, cte_value, dbw_status):
         # TODO: Change the arg, kwarg list to suit your needs
         # If we drive slower than the target sppeed, we push the gas pedal (throttle), othwise not
-        actual_v = self.LPF_velocity.filt(actual_v)
-        target_v = self.LPF_target_v.filt(target_v)
+        # actual_v = self.LPF_velocity.filt(actual_v)
+        # target_v = self.LPF_target_v.filt(target_v)
         speed_error = target_v - actual_v
         speed_command =  self.speed_PID.step(speed_error, self.sample_time)
         throttle_command, brake_command = self.get_speed_control_vector(speed_command)
