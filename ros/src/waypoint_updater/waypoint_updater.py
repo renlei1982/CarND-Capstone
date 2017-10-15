@@ -148,15 +148,14 @@ class WaypointUpdater(object):
         # First implementation of speed envelope. 
         #We need to make sure that this gets created once, not every time a red is detected
         self.envelope.base_wps = self.base_waypoints
+
         if self.distance(self.base_waypoints, self.closest_point, self.next_red_tl_wp) < 100:
             self.stop_at_red_wps = self.envelope.get_envelope(self.closest_point, self.next_red_tl_wp, self.actual_v)
             self.red_tl_approach = True
             rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
         else:
             self.red_tl_approach = False
-            rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
-
-
+            rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))    
         
 
     def obstacle_cb(self, msg):
