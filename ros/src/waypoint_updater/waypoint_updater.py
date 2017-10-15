@@ -10,6 +10,7 @@ import math
 import tf
 import numpy as np
 from speed_envelope import SpeedEnvelope
+from copy import deepcopy
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -106,28 +107,32 @@ class WaypointUpdater(object):
         self.actual_v = current_velocity.twist.linear.x    
 
 
-    def pose_cb(self, msg):
+    def pose_cb(self, msg):        
+        #rospy.logerr('pose_cb called')
         if not self.base_waypoints:
+            rospy.logerr('Empty Waypoints in pose_cb')
             return
         _, _, yaw = tf.transformations.euler_from_quaternion([msg.pose.orientation.x,
                                                               msg.pose.orientation.y,
                                                               msg.pose.orientation.z,
                                                               msg.pose.orientation.w])
         # Find the index of the next waypoint
+        #rospy.logerr('Non-empty waypoints in pose_cb')
         next_wp_id = self.next_waypoint(msg.pose.position.x, msg.pose.position.y, yaw)
-        rospy.loginfo('Next waypoint id = {0}'.format(next_wp_id))
+        #rospy.logerr('Next waypoint id = {0}'.format(next_wp_id))
         self.waypoint_id_pub.publish(Int32(next_wp_id))
         # Prepare a list of the upcoming waypoints
         upcoming_waypoints = [self.base_waypoints[idx % len(self.base_waypoints)]
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
         # Prepare message
-        msg = Lane(waypoints=upcoming_waypoints)
+        msg_drive = Lane(waypoints=upcoming_waypoints)
         # Publish it
+        
         if self.red_tl_approach:
-            msg = Lane(waypoints = self.stop_at_red_wps)            
-            self.final_waypoints_pub.publish(msg)
+            msg_red = Lane(waypoints = self.stop_at_red_wps)            
+            self.final_waypoints_pub.publish(msg_red)            
         else:
-            self.final_waypoints_pub.publish(msg)
+            self.final_waypoints_pub.publish(msg_drive)            
 
     def waypoints_cb(self, waypoints):
         self.base_waypoints = waypoints.waypoints
@@ -136,7 +141,7 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
-        #rospy.logwarn('Next traffic light id = {0}'.format(msg))
+        rospy.logwarn('Next traffic light id = {0}'.format(msg))
         wp_id = msg.data
         self.last_red_tl_wp = self.next_red_tl_wp #Save previous value
         if wp_id == -1 :
