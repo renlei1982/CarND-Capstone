@@ -177,7 +177,7 @@ class WaypointUpdater(object):
 
         # If the red light ahead is detected and within the range of 200 waypoints,
         # the x speed of the upcoming waypoits should be decelerated
-        if self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 200:
+        if self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 100:
             upcoming_waypoints = self.decelerate(next_wp_id, self.next_red_tl_wp, upcoming_waypoints)
 
         # Prepare message
@@ -188,7 +188,7 @@ class WaypointUpdater(object):
     def waypoints_cb(self, waypoints):
         self.base_waypoints = waypoints.waypoints
         # Unsubscribe from base waypoints to improve performance
-        self.base_waypoints_sub.unregister()
+        # self.base_waypoints_sub.unregister()
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
