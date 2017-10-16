@@ -58,7 +58,7 @@ class Controller(object):
             brake = 0.0
         elif speed_command < 0.0:
             throttle = speed_command
-            brake = -1.0
+            brake = -5.0
         return throttle, brake
 
     def control(self, target_v, yaw_angle, actual_v, cte_value, dbw_status):
