@@ -29,6 +29,8 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 MIN_RED_TL_DIST = 100 #Min distance to consider a RED traffic light to stop
+MAX_DECEL = 1.0  # Max decelaration a
+
 
 
 class WaypointUpdater(object):
@@ -103,6 +105,26 @@ class WaypointUpdater(object):
 
         return self.closest_point
 
+
+    # Deceleration control waypoint x speed calculation
+    def decelerate(self, next_wp_id, next_tl_wp_id, waypoints):
+        to_tl_steps = next_tl_wp_id - next_wp_id
+        waypoints[to_tl_steps].twist.twist.linear.x = -1.0
+        waypoints[to_tl_steps - 1].twist.twist.linear.x = -1.0
+        for wp in waypoints[0:(to_tl_steps - 1)][::-1]:
+            dist = self.distance_2(wp.pose.pose.position, waypoints[to_tl_steps - 1].pose.pose.position)
+            vel = math.sqrt(2 * MAX_DECEL * dist)/3
+            if vel < 1.:
+                vel = 0.
+            wp.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
+            # wp.twist.twist.linear.x = min(vel, 0.0)
+        return waypoints
+
+
+    def distance_2(self, p1, p2):
+        x, y, z = p1.x - p2.x, p1.y - p2.y, p1.z - p2.z
+        return math.sqrt(x*x + y*y + z*z)
+
     def current_velocity_callback(self, current_velocity) :
         self.actual_v = current_velocity.twist.linear.x    
 
@@ -119,20 +141,31 @@ class WaypointUpdater(object):
         # Find the index of the next waypoint
         #rospy.logerr('Non-empty waypoints in pose_cb')
         next_wp_id = self.next_waypoint(msg.pose.position.x, msg.pose.position.y, yaw)
-        #rospy.logerr('Next waypoint id = {0}'.format(next_wp_id))
+        #Computing wp speeds, using closest wp
+        
+        rospy.loginfo('Next waypoint id = {0}'.format(next_wp_id))
+
         self.waypoint_id_pub.publish(Int32(next_wp_id))
         # Prepare a list of the upcoming waypoints
         upcoming_waypoints = [self.base_waypoints[idx % len(self.base_waypoints)]
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
-            
-        # Prepare message and Publish it
 
-        if self.red_tl_approach:
-            msg_red = Lane(waypoints = self.stop_at_red_wps)            
-            self.final_waypoints_pub.publish(msg_red)            
-        else:
-            msg_drive = Lane(waypoints=upcoming_waypoints)    
-            self.final_waypoints_pub.publish(msg_drive)            
+        for wp in upcoming_waypoints:
+            wp.twist.twist.linear.x = 40.0 * 0.27778
+
+
+        # If the red light ahead is detected and within the range of 200 waypoints,
+        # the x speed of the upcoming waypoits should be decelerated
+        if self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 800 and self.next_red_tl_wp > next_wp_id:
+            upcoming_waypoints = self.decelerate(next_wp_id, self.next_red_tl_wp, upcoming_waypoints)
+
+        # Prepare message
+        msg = Lane(waypoints=upcoming_waypoints)
+        rospy.logwarn('The next msg waypoint speed is {0}'.format(msg.waypoints[0].twist.twist.linear.x))
+        rospy.logwarn('The next base_waypoint speed is {0}'.format(self.base_waypoints[next_wp_id].twist.twist.linear.x))
+        # Publish it
+        self.final_waypoints_pub.publish(msg)
+
 
     def waypoints_cb(self, waypoints):
         self.base_waypoints = waypoints.waypoints

@@ -31,7 +31,9 @@ class Controller(object):
         self.sample_time = 1/50 # initial value, gets updated in loop
 
 
-        self.speed_PID = PID(0.2, 0.01, 0.1, mn = -1, mx = 1) # Dummy values
+        self.speed_PID = PID(1.0, 0.01, 0.1, mn = -1, mx = 1) # Dummy values
+        self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
+
 
         # Comment out the steer pid, could be reactivated if needed
         # self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
@@ -59,15 +61,15 @@ class Controller(object):
             throttle = max(min(speed_command, 1.0), 0.0)
             brake = 0.0
         elif speed_command < 0.0:
-            throttle = 0.0
-            brake = max(min(abs(speed_command), 1.0), 0.0)
+            throttle = speed_command * 10
+            brake = 1736.05 * min(abs(speed_command), 5.0) *0.2413
         return throttle, brake
 
     def control(self, target_v, yaw_angle, actual_v, cte_value, dbw_status):
         # TODO: Change the arg, kwarg list to suit your needs
         # If we drive slower than the target sppeed, we push the gas pedal (throttle), othwise not
-        actual_v = self.LPF_velocity.filt(actual_v)
-        target_v = self.LPF_target_v.filt(target_v)
+        # actual_v = self.LPF_velocity.filt(actual_v)
+        # target_v = self.LPF_target_v.filt(target_v)
         speed_error = target_v - actual_v
         speed_command =  self.speed_PID.step(speed_error, self.sample_time)
         throttle_command, brake_command = self.get_speed_control_vector(speed_command)
