@@ -41,9 +41,9 @@ class WaypointUpdater(object):
 
         #next_red_tl_wp holds the wp id of the next traffic light detected on red.
         self.actual_v = 0
-        self.next_red_tl_wp = None
+        self.next_red_tl_wp = -1
         #To check if the red light state changed
-        self.last_red_tl_wp = None
+        self.last_red_tl_wp = -1
         self.upcoming_red_light_sub = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
         rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback,
                 queue_size =1)
@@ -120,13 +120,13 @@ class WaypointUpdater(object):
         # Prepare a list of the upcoming waypoints
         upcoming_waypoints = [self.base_waypoints[idx % len(self.base_waypoints)]
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
-        # Prepare message
-        msg = Lane(waypoints=upcoming_waypoints)
-        # Publish it
+            
+        # Prepare message and Publish it
         if self.red_tl_approach:
             msg = Lane(waypoints = self.stop_at_red_wps)            
             self.final_waypoints_pub.publish(msg)
         else:
+            msg = Lane(waypoints=upcoming_waypoints)
             self.final_waypoints_pub.publish(msg)
 
     def waypoints_cb(self, waypoints):
@@ -139,24 +139,23 @@ class WaypointUpdater(object):
         #rospy.logwarn('Next traffic light id = {0}'.format(msg))
         wp_id = msg.data
         self.last_red_tl_wp = self.next_red_tl_wp #Save previous value
-        if wp_id == -1 :
-            self.next_red_tl_wp = None
+        self.next_red_tl_wp = wp_id #Get if of most recent red tl found
+        #rospy.logwarn('Next RED traffic light val = {0}'.format(self.base_waypoints[wp_id].pose))
+    
+        #If the red tl is near
+        if self.next_red_tl_wp != -1 and self.distance(self.base_waypoints, self.closest_point, self.next_red_tl_wp) < MIN_RED_TL_DIST :
+            #We've just found the red tl, then compute wp speeds
+            if self.next_red_tl_wp != self.last_red_tl_wp :
+                self.envelope.base_wps = self.base_waypoints
+                self.stop_at_red_wps = self.envelope.get_envelope(self.closest_point, self.next_red_tl_wp, self.actual_v)
+            self.red_tl_approach = True
         else :
-            self.next_red_tl_wp = wp_id
-            #rospy.logwarn('Next RED traffic light val = {0}'.format(self.base_waypoints[wp_id].pose))
+            self.red_tl_approach = False
         
+        rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
+
         # First implementation of speed envelope. 
         #We need to make sure that this gets created once, not every time a red is detected
-        self.envelope.base_wps = self.base_waypoints
-        if self.distance(self.base_waypoints, self.closest_point, self.next_red_tl_wp) < 100:
-            self.stop_at_red_wps = self.envelope.get_envelope(self.closest_point, self.next_red_tl_wp, self.actual_v)
-            self.red_tl_approach = True
-            rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
-        else:
-            self.red_tl_approach = False
-            rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
-
-
         
 
     def obstacle_cb(self, msg):
