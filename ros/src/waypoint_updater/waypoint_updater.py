@@ -176,8 +176,8 @@ class WaypointUpdater(object):
         upcoming_waypoints = [self.base_waypoints[idx % len(self.base_waypoints)]
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
 
-        # for wp in upcoming_waypoints:
-            # wp.twist.twist.linear.x = 40.0
+        for wp in upcoming_waypoints:
+            wp.twist.twist.linear.x = 40.0 * 0.27778
 
 
         # If the red light ahead is detected and within the range of 200 waypoints,
