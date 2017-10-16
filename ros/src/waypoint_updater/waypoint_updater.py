@@ -187,8 +187,8 @@ class WaypointUpdater(object):
 
         # Prepare message
         msg = Lane(waypoints=upcoming_waypoints)
-        rospy.logwarn('The next msg waypoint speed is {0}'format(msg.waypoints[0].twist.twist.linear.x))
-        rospy.logwarn('The next base_waypoint speed is {0}'format(self.base_waypoints[next_wp_id].twist.twist.linear.x))
+        rospy.logwarn('The next msg waypoint speed is {0}'.format(msg.waypoints[0].twist.twist.linear.x))
+        rospy.logwarn('The next base_waypoint speed is {0}'.format(self.base_waypoints[next_wp_id].twist.twist.linear.x))
         # Publish it
         self.final_waypoints_pub.publish(msg)
 
