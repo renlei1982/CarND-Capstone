@@ -104,7 +104,7 @@ class WaypointUpdater(object):
         waypoints[to_tl_steps - 1].twist.twist.linear.x = -1.0
         for wp in waypoints[0:(to_tl_steps - 1)][::-1]:
             dist = self.distance_2(wp.pose.pose.position, waypoints[to_tl_steps - 1].pose.pose.position)
-            vel = math.sqrt(2 * MAX_DECEL * dist)/20
+            vel = math.sqrt(2 * MAX_DECEL * dist)/8
             if vel < 1.:
                 vel = 0.
             wp.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
@@ -182,7 +182,7 @@ class WaypointUpdater(object):
 
         # If the red light ahead is detected and within the range of 200 waypoints,
         # the x speed of the upcoming waypoits should be decelerated
-        if self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 400 and self.next_red_tl_wp > next_wp_id:
+        if self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 600 and self.next_red_tl_wp > next_wp_id:
             upcoming_waypoints = self.decelerate(next_wp_id, self.next_red_tl_wp, upcoming_waypoints)
 
         # Prepare message
