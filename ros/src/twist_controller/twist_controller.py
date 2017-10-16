@@ -57,7 +57,7 @@ class Controller(object):
             throttle = max(min(speed_command, 1.0), 0.0)
             brake = 0.0
         elif speed_command < 0.0:
-            throttle = 0.0
+            throttle = speed_command
             brake = (-1) * speed_command * (self.vehicle_mass + self.fuel_capacity * GAS_DENSITY) * 100000 /(self.wheel_radius) 
         return throttle, brake
 
