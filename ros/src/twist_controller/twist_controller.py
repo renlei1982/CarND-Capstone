@@ -31,7 +31,7 @@ class Controller(object):
         self.sample_time = 1/50 # initial value, gets updated in loop
 
 
-        self.speed_PID = PID(0.2, 0.01, 0.1, mn = -1, mx = 1) # Dummy values
+        self.speed_PID = PID(1.0, 0.01, 0.1, mn = -1, mx = 1) # Dummy values
         self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
 
 
@@ -58,7 +58,7 @@ class Controller(object):
             brake = 0.0
         elif speed_command < 0.0:
             throttle = speed_command * 10
-            brake = -5.0
+            brake = 1736.05 * min(abs(speed_command), 5.0) *0.2413
         return throttle, brake
 
     def control(self, target_v, yaw_angle, actual_v, cte_value, dbw_status):
