@@ -100,8 +100,9 @@ class WaypointUpdater(object):
     # Deceleration control waypoint x speed calculation
     def decelerate(self, next_wp_id, next_tl_wp_id, waypoints):
         to_tl_steps = next_tl_wp_id - next_wp_id
-        waypoints[to_tl_steps].twist.twist.linear.x = 0.0
-        for wp in waypoints[0:to_tl_steps][::-1]:
+        waypoints[to_tl_steps].twist.twist.linear.x = -1.0
+        waypoints[to_tl_steps - 1].twist.twist.linear.x = -1.0
+        for wp in waypoints[0:(to_tl_steps - 1)][::-1]:
             dist = self.distance_2(wp.pose.pose.position, waypoints[to_tl_steps].pose.pose.position)
             vel = math.sqrt(2 * MAX_DECEL * dist) * 3.6
             if vel < 1.:
@@ -181,11 +182,13 @@ class WaypointUpdater(object):
 
         # If the red light ahead is detected and within the range of 200 waypoints,
         # the x speed of the upcoming waypoits should be decelerated
-        if self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 100:
+        if self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 200:
             upcoming_waypoints = self.decelerate(next_wp_id, self.next_red_tl_wp, upcoming_waypoints)
 
         # Prepare message
         msg = Lane(waypoints=upcoming_waypoints)
+        rospy.logwarn('The next msg waypoint speed is {0}'format(msg.waypoints[0].twist.twist.linear.x))
+        rospy.logwarn('The next base_waypoint speed is {0}'format(self.base_waypoints[next_wp_id].twist.twist.linear.x))
         # Publish it
         self.final_waypoints_pub.publish(msg)
 
