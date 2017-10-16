@@ -57,7 +57,7 @@ class Controller(object):
             throttle = max(min(speed_command, 1.0), 0.0)
             brake = 0.0
         elif speed_command < 0.0:
-            throttle = speed_command
+            throttle = speed_command * 5
             brake = -5.0
         return throttle, brake
 
