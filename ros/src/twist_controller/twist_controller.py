@@ -32,12 +32,7 @@ class Controller(object):
 
 
         self.speed_PID = PID(1.0, 0.01, 0.1, mn = -1, mx = 1) # Dummy values
-        # self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
-
-
-        # Comment out the steer pid, could be reactivated if needed
-        # self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
-
+        self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
 
         # initial control values	
         # self.steer = 0.0
@@ -50,7 +45,7 @@ class Controller(object):
 
         # self.LPF_velocity = LowPassFilter(0.90, 1.0)
         # self.LPF_target_v = LowPassFilter(0.90, 1.0)
-        self.LPF_angle = LowPassFilter(0.90, 1.0)
+        # self.LPF_angle = LowPassFilter(0.90, 1.0)
 
     def get_speed_control_vector(self, speed_command):
         #default control behavior, don't do anything
@@ -75,11 +70,10 @@ class Controller(object):
         throttle_command, brake_command = self.get_speed_control_vector(speed_command)
 
         # Comment out the steer pid, could be reactivated if needed
-        # steer = self.steer_PID.step(cte_value, self.sample_time)
+        steer = self.steer_PID.step(cte_value, self.sample_time)
         
-        yaw_angle = self.LPF_angle.filt(yaw_angle)
-        # self.steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v) 
-        steer = self.yaw_ctrl.get_steering(target_v, yaw_angle, actual_v)
+        # yaw_angle = self.LPF_angle.filt(yaw_angle) 
+        # steer = self.yaw_ctrl.get_steering(target_v, yaw_angle, actual_v)
 
         # Return throttle, brake, steer
         return throttle_command, brake_command, steer
