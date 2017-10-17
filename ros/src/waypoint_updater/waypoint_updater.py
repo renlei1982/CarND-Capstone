@@ -147,10 +147,10 @@ class WaypointUpdater(object):
         # Prepare a list of the upcoming waypoints
         upcoming_waypoints = [self.base_waypoints[idx % len(self.base_waypoints)]
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
-
+        '''
         for wp in upcoming_waypoints:
             wp.twist.twist.linear.x = 40 * 0.27778
-
+        '''
 
         # If the red light ahead is detected and within the range of 200 waypoints,
         # the x speed of the upcoming waypoits should be decelerated
@@ -164,11 +164,11 @@ class WaypointUpdater(object):
     def waypoints_cb(self, waypoints):
         self.base_waypoints = waypoints.waypoints
         # Unsubscribe from base waypoints to improve performance
-        self.base_waypoints_sub.unregister()
+        # self.base_waypoints_sub.unregister()
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
-        rospy.logwarn('Next traffic light id = {0}'.format(msg))
+        # rospy.logwarn('Next traffic light id = {0}'.format(msg))
         wp_id = msg.data
         self.last_red_tl_wp = self.next_red_tl_wp #Save previous value
         self.next_red_tl_wp = wp_id #Get if of most recent red tl found
@@ -183,17 +183,7 @@ class WaypointUpdater(object):
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
-    '''
-    def distance(self, waypoints, wp1, wp2):
-        if wp1 == None or wp2 == None: 
-            return 1000 #Far away to be replaced by something safe
-        dist = 0
-        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
-            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-            wp1 = i
-        return dist
-    '''
+
 
 if __name__ == '__main__':
     try:
