@@ -9,7 +9,7 @@ from geometry_msgs.msg import TwistStamped
 import math
 import tf
 import numpy as np
-from speed_envelope import SpeedEnvelope
+
 from copy import deepcopy
 
 '''
@@ -62,8 +62,6 @@ class WaypointUpdater(object):
         # Make the closest point id callable in the class
         self.closest_point = 0
 
-        #Init the SpeedEnvelope
-        self.envelope = SpeedEnvelope(self.base_waypoints, safety_distance = 10)
         self.stop_at_red_wps = None
         self.red_tl_approach = False
 
