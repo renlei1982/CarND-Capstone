@@ -65,6 +65,8 @@ class WaypointUpdater(object):
         self.stop_at_red_wps = None
         # self.red_tl_approach = False
 
+        self.maximum_v = 0.0
+
         rospy.spin()
 
     def next_waypoint(self, x, y, yaw):
@@ -137,11 +139,11 @@ class WaypointUpdater(object):
                                                               msg.pose.orientation.z,
                                                               msg.pose.orientation.w])
         # Find the index of the next waypoint
-        #rospy.logerr('Non-empty waypoints in pose_cb')
+        # rospy.logerr('Non-empty waypoints in pose_cb')
         next_wp_id = self.next_waypoint(msg.pose.position.x, msg.pose.position.y, yaw)
-        #Computing wp speeds, using closest wp
+        # Computing wp speeds, using closest wp
         
-        rospy.loginfo('Next waypoint id = {0}'.format(next_wp_id))
+        # rospy.loginfo('Next waypoint id = {0}'.format(next_wp_id))
 
         self.waypoint_id_pub.publish(Int32(next_wp_id))
         # Prepare a list of the upcoming waypoints
@@ -149,7 +151,7 @@ class WaypointUpdater(object):
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
 
         for wp in upcoming_waypoints:
-            wp.twist.twist.linear.x = 40.0 * 0.27778
+            wp.twist.twist.linear.x = self.maximum_v * 0.27778
 
 
         # If the red light ahead is detected and within the range of 200 waypoints,
@@ -158,15 +160,12 @@ class WaypointUpdater(object):
             upcoming_waypoints = self.decelerate(next_wp_id, self.next_red_tl_wp, upcoming_waypoints)
 
         # Prepare message
-        # msg_upcoming_waypoints = Lane(waypoints=upcoming_waypoints)
-        # rospy.logwarn('The next msg waypoint speed is {0}'.format(msg.waypoints[0].twist.twist.linear.x))
-        # rospy.logwarn('The next base_waypoint speed is {0}'.format(self.base_waypoints[next_wp_id].twist.twist.linear.x))
-        # Publish it
         self.final_waypoints_pub.publish(Lane(waypoints=upcoming_waypoints))
 
 
     def waypoints_cb(self, waypoints):
         self.base_waypoints = waypoints.waypoints
+        self.maximum_v = self.base_waypoints[0].twist.twist.linear.x
         # Unsubscribe from base waypoints to improve performance
         self.base_waypoints_sub.unregister()
 
