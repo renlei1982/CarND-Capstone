@@ -32,7 +32,7 @@ class Controller(object):
 
 
         self.speed_PID = PID(1.0, 0.01, 0.1, mn = -1, mx = 1) # Dummy values
-        self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
+        # self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
 
 
         # Comment out the steer pid, could be reactivated if needed
@@ -48,8 +48,8 @@ class Controller(object):
                                       self.max_lat_accel,
                                       self.max_steer_angle) # Set the min_speed as 0
 
-        self.LPF_velocity = LowPassFilter(0.90, 1.0)
-        self.LPF_target_v = LowPassFilter(0.90, 1.0)
+        # self.LPF_velocity = LowPassFilter(0.90, 1.0)
+        # self.LPF_target_v = LowPassFilter(0.90, 1.0)
         self.LPF_angle = LowPassFilter(0.90, 1.0)
 
     def get_speed_control_vector(self, speed_command):
@@ -62,7 +62,7 @@ class Controller(object):
             brake = 0.0
         elif speed_command < 0.0:
             throttle = speed_command * 10
-            brake = self.vehicle_mass * min(abs(speed_command), abs(self.decel_limit)) * self.wheel_radius
+            brake = (self.vehicle_mass + self.fuel_capacity * GAS_DENSITY) * min(abs(speed_command), abs(self.decel_limit)) * self.wheel_radius
         return throttle, brake
 
     def control(self, target_v, yaw_angle, actual_v, cte_value, dbw_status):

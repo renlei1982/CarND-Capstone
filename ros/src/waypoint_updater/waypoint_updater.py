@@ -158,11 +158,11 @@ class WaypointUpdater(object):
             upcoming_waypoints = self.decelerate(next_wp_id, self.next_red_tl_wp, upcoming_waypoints)
 
         # Prepare message
-        msg = Lane(waypoints=upcoming_waypoints)
-        rospy.logwarn('The next msg waypoint speed is {0}'.format(msg.waypoints[0].twist.twist.linear.x))
-        rospy.logwarn('The next base_waypoint speed is {0}'.format(self.base_waypoints[next_wp_id].twist.twist.linear.x))
+        # msg_upcoming_waypoints = Lane(waypoints=upcoming_waypoints)
+        # rospy.logwarn('The next msg waypoint speed is {0}'.format(msg.waypoints[0].twist.twist.linear.x))
+        # rospy.logwarn('The next base_waypoint speed is {0}'.format(self.base_waypoints[next_wp_id].twist.twist.linear.x))
         # Publish it
-        self.final_waypoints_pub.publish(msg)
+        self.final_waypoints_pub.publish(Lane(waypoints=upcoming_waypoints))
 
 
     def waypoints_cb(self, waypoints):
@@ -176,22 +176,6 @@ class WaypointUpdater(object):
         wp_id = msg.data
         self.last_red_tl_wp = self.next_red_tl_wp #Save previous value
         self.next_red_tl_wp = wp_id #Get if of most recent red tl found
-        #rospy.logwarn('Next RED traffic light val = {0}'.format(self.base_waypoints[wp_id].pose))
-
-        '''
-        #If the red tl is near
-        if self.next_red_tl_wp != -1 and self.distance(self.base_waypoints, self.closest_point, self.next_red_tl_wp) < MIN_RED_TL_DIST :
-            #We've just found the red tl, then compute wp speeds
-            if self.next_red_tl_wp != self.last_red_tl_wp :
-
-            self.red_tl_approach = True
-        else :
-            self.red_tl_approach = False
-        
-        rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
-        '''
-        # First implementation of speed envelope. 
-        #We need to make sure that this gets created once, not every time a red is detected
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
