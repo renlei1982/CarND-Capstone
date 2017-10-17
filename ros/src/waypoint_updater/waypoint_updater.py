@@ -63,7 +63,7 @@ class WaypointUpdater(object):
         self.closest_point = 0
 
         self.stop_at_red_wps = None
-        self.red_tl_approach = False
+        # self.red_tl_approach = False
 
         rospy.spin()
 
@@ -177,19 +177,19 @@ class WaypointUpdater(object):
         self.last_red_tl_wp = self.next_red_tl_wp #Save previous value
         self.next_red_tl_wp = wp_id #Get if of most recent red tl found
         #rospy.logwarn('Next RED traffic light val = {0}'.format(self.base_waypoints[wp_id].pose))
-    
+
+        '''
         #If the red tl is near
         if self.next_red_tl_wp != -1 and self.distance(self.base_waypoints, self.closest_point, self.next_red_tl_wp) < MIN_RED_TL_DIST :
             #We've just found the red tl, then compute wp speeds
             if self.next_red_tl_wp != self.last_red_tl_wp :
-                self.envelope.base_wps = self.base_waypoints
-                self.stop_at_red_wps = self.envelope.get_envelope(self.closest_point, self.next_red_tl_wp, self.actual_v)
+
             self.red_tl_approach = True
         else :
             self.red_tl_approach = False
         
         rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
-
+        '''
         # First implementation of speed envelope. 
         #We need to make sure that this gets created once, not every time a red is detected
 
@@ -203,6 +203,7 @@ class WaypointUpdater(object):
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
+    '''
     def distance(self, waypoints, wp1, wp2):
         if wp1 == None or wp2 == None: 
             return 1000 #Far away to be replaced by something safe
@@ -212,7 +213,7 @@ class WaypointUpdater(object):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
-
+    '''
 
 if __name__ == '__main__':
     try:
