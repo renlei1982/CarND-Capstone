@@ -65,8 +65,6 @@ class WaypointUpdater(object):
         self.stop_at_red_wps = None
         # self.red_tl_approach = False
 
-        self.maximum_v = 0.0
-
         rospy.spin()
 
     def next_waypoint(self, x, y, yaw):
@@ -151,7 +149,7 @@ class WaypointUpdater(object):
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
 
         for wp in upcoming_waypoints:
-            wp.twist.twist.linear.x = self.maximum_v * 0.27778
+            wp.twist.twist.linear.x = 40 * 0.27778
 
 
         # If the red light ahead is detected and within the range of 200 waypoints,
@@ -165,7 +163,6 @@ class WaypointUpdater(object):
 
     def waypoints_cb(self, waypoints):
         self.base_waypoints = waypoints.waypoints
-        self.maximum_v = self.base_waypoints[0].twist.twist.linear.x
         # Unsubscribe from base waypoints to improve performance
         self.base_waypoints_sub.unregister()
 
