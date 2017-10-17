@@ -147,10 +147,9 @@ class WaypointUpdater(object):
         # Prepare a list of the upcoming waypoints
         upcoming_waypoints = [self.base_waypoints[idx % len(self.base_waypoints)]
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
-        '''
+        
         for wp in upcoming_waypoints:
             wp.twist.twist.linear.x = 40 * 0.27778
-        '''
 
         # If the red light ahead is detected and within the range of 200 waypoints,
         # the x speed of the upcoming waypoits should be decelerated
@@ -164,7 +163,7 @@ class WaypointUpdater(object):
     def waypoints_cb(self, waypoints):
         self.base_waypoints = waypoints.waypoints
         # Unsubscribe from base waypoints to improve performance
-        # self.base_waypoints_sub.unregister()
+        self.base_waypoints_sub.unregister()
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
