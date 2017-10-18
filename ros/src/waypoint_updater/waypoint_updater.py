@@ -65,7 +65,7 @@ class WaypointUpdater(object):
         # self.red_tl_approach = False
 
 
-        self.velocity = rospy.get_param('/waypoint_loader~velocity')
+        self.velocity = rospy.get_param('/waypoint_loader/velocity')
 
         rospy.spin()
 
