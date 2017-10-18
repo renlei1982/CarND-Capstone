@@ -48,8 +48,7 @@ class WaypointUpdater(object):
         #To check if the red light state changed
         self.last_red_tl_wp = -1
         self.upcoming_red_light_sub = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
-        rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback,
-                queue_size =1)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback, queue_size =1)
 
 
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
@@ -64,6 +63,9 @@ class WaypointUpdater(object):
 
         self.stop_at_red_wps = None
         # self.red_tl_approach = False
+
+
+        self.velocity = rospy.get_param('~velocity')
 
         rospy.spin()
 
@@ -149,7 +151,7 @@ class WaypointUpdater(object):
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
         
         for wp in upcoming_waypoints:
-            wp.twist.twist.linear.x = 40 * 0.27778
+            wp.twist.twist.linear.x = self.velocity * 0.27778
 
         # If the red light ahead is detected and within the range of 200 waypoints,
         # the x speed of the upcoming waypoits should be decelerated
