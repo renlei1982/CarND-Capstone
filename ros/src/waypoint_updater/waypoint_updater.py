@@ -109,10 +109,12 @@ class WaypointUpdater(object):
     # Deceleration control waypoint x speed calculation
     def decelerate(self, next_wp_id, next_tl_wp_id, waypoints):
         to_tl_steps = next_tl_wp_id - next_wp_id
-        waypoints[to_tl_steps].twist.twist.linear.x = -1.0
-        waypoints[to_tl_steps - 1].twist.twist.linear.x = -1.0
-        for wp_seq in range(to_tl_steps - 1):
-            dist = self.distance(waypoints, wp_seq, to_tl_steps - 1)
+
+        for wp_seq in range(to_tl_steps - 5, to_tl_steps + 1):
+            self.set_waypoint_velocity(waypoints, wp_seq, -5.0)
+            
+        for wp_seq in range(to_tl_steps - 5):
+            dist = self.distance(waypoints, wp_seq, to_tl_steps - 5)
             vel = math.sqrt(2 * MAX_DECEL * dist)/2
             if vel < 1.:
                 vel = 0.
