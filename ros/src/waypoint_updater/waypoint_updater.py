@@ -116,7 +116,7 @@ class WaypointUpdater(object):
             vel = math.sqrt(2 * MAX_DECEL * dist)/3
             if vel < 1.:
                 vel = 0.
-            wp.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
+            self.set_waypoint_velocity(waypoints, wp_seq, min(vel, self.velocity))
             # wp.twist.twist.linear.x = min(vel, 0.0)
         return waypoints
 
