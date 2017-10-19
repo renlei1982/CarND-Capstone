@@ -31,26 +31,25 @@ class Controller(object):
         self.sample_time = 1/50 # initial value, gets updated in loop
 
 
-        self.speed_PID = PID(1.0, 0.01, 0.1, mn = -1, mx = 1) # Dummy values
-        self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
-
-
-        # Comment out the steer pid, could be reactivated if needed
-        # self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -1, mx = 1) # To be adjusted
-
+        self.speed_PID = PID(1.0, 0.01, 0.1, mn = self.decel_limit, mx = self.accel_limit) # Dummy values
+        self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -self.max_steer_angle, mx = self.max_steer_angle) # To be adjusted
 
         # initial control values	
         # self.steer = 0.0
 
+        # To use the yaw_controller, activate the code below
+        '''
         self.yaw_ctrl = YawController(self.wheel_base,
                                       self.steer_ratio,
                                       2.0,
                                       self.max_lat_accel,
                                       self.max_steer_angle) # Set the min_speed as 0
 
-        self.LPF_velocity = LowPassFilter(0.90, 1.0)
-        self.LPF_target_v = LowPassFilter(0.90, 1.0)
         self.LPF_angle = LowPassFilter(0.90, 1.0)
+        '''
+        # self.LPF_velocity = LowPassFilter(0.90, 1.0)
+        # self.LPF_target_v = LowPassFilter(0.90, 1.0)
+
 
     def get_speed_control_vector(self, speed_command):
         #default control behavior, don't do anything
@@ -62,7 +61,7 @@ class Controller(object):
             brake = 0.0
         elif speed_command < 0.0:
             throttle = speed_command * 10
-            brake = 1736.05 * min(abs(speed_command), 5.0) *0.2413
+            brake = (self.vehicle_mass + self.fuel_capacity * GAS_DENSITY) * min(abs(speed_command), abs(self.decel_limit)) * self.wheel_radius
         return throttle, brake
 
     def control(self, target_v, yaw_angle, actual_v, cte_value, dbw_status):
@@ -75,11 +74,13 @@ class Controller(object):
         throttle_command, brake_command = self.get_speed_control_vector(speed_command)
 
         # Comment out the steer pid, could be reactivated if needed
-        # steer = self.steer_PID.step(cte_value, self.sample_time)
-        
-        yaw_angle = self.LPF_angle.filt(yaw_angle)
-        # self.steer = self.yaw_ctrl.get_steering(actual_v, yaw_angle, actual_v) 
-        steer = self.yaw_ctrl.get_steering(target_v, yaw_angle, actual_v)
+        steer = self.steer_PID.step(cte_value, self.sample_time)
 
+        
+        # To use the yaw_controller, activate the code below
+        '''
+        yaw_angle = self.LPF_angle.filt(yaw_angle) 
+        steer = self.yaw_ctrl.get_steering(target_v, yaw_angle, actual_v)
+        '''
         # Return throttle, brake, steer
         return throttle_command, brake_command, steer

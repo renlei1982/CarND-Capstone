@@ -9,7 +9,7 @@ from geometry_msgs.msg import TwistStamped
 import math
 import tf
 import numpy as np
-from speed_envelope import SpeedEnvelope
+
 from copy import deepcopy
 
 '''
@@ -48,8 +48,7 @@ class WaypointUpdater(object):
         #To check if the red light state changed
         self.last_red_tl_wp = -1
         self.upcoming_red_light_sub = rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
-        rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback,
-                queue_size =1)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.current_velocity_callback, queue_size =1)
 
 
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
@@ -62,10 +61,11 @@ class WaypointUpdater(object):
         # Make the closest point id callable in the class
         self.closest_point = 0
 
-        #Init the SpeedEnvelope
-        self.envelope = SpeedEnvelope(self.base_waypoints, safety_distance = 10)
         self.stop_at_red_wps = None
-        self.red_tl_approach = False
+        # self.red_tl_approach = False
+
+
+        self.velocity = rospy.get_param('/waypoint_loader/velocity')
 
         rospy.spin()
 
@@ -109,21 +109,33 @@ class WaypointUpdater(object):
     # Deceleration control waypoint x speed calculation
     def decelerate(self, next_wp_id, next_tl_wp_id, waypoints):
         to_tl_steps = next_tl_wp_id - next_wp_id
-        waypoints[to_tl_steps].twist.twist.linear.x = -1.0
-        waypoints[to_tl_steps - 1].twist.twist.linear.x = -1.0
-        for wp in waypoints[0:(to_tl_steps - 1)][::-1]:
-            dist = self.distance_2(wp.pose.pose.position, waypoints[to_tl_steps - 1].pose.pose.position)
-            vel = math.sqrt(2 * MAX_DECEL * dist)/3
+
+        for wp_seq in range(to_tl_steps - 5, to_tl_steps + 1):
+            self.set_waypoint_velocity(waypoints, wp_seq, -5.0)
+            
+        for wp_seq in range(to_tl_steps - 5):
+            dist = self.distance(waypoints, wp_seq, to_tl_steps - 5)
+            vel = math.sqrt(2 * MAX_DECEL * dist)/2.5
             if vel < 1.:
                 vel = 0.
-            wp.twist.twist.linear.x = min(vel, wp.twist.twist.linear.x)
+            self.set_waypoint_velocity(waypoints, wp_seq, min(vel, self.velocity))
             # wp.twist.twist.linear.x = min(vel, 0.0)
         return waypoints
 
 
+    def distance(self, waypoints, wp1, wp2):
+        dist = 0
+        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+        for i in range(wp1, wp2+1):
+            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
+            wp1 = i
+        return dist
+
+    '''
     def distance_2(self, p1, p2):
         x, y, z = p1.x - p2.x, p1.y - p2.y, p1.z - p2.z
         return math.sqrt(x*x + y*y + z*z)
+    '''    
 
     def current_velocity_callback(self, current_velocity) :
         self.actual_v = current_velocity.twist.linear.x    
@@ -139,32 +151,27 @@ class WaypointUpdater(object):
                                                               msg.pose.orientation.z,
                                                               msg.pose.orientation.w])
         # Find the index of the next waypoint
-        #rospy.logerr('Non-empty waypoints in pose_cb')
+        # rospy.logerr('Non-empty waypoints in pose_cb')
         next_wp_id = self.next_waypoint(msg.pose.position.x, msg.pose.position.y, yaw)
-        #Computing wp speeds, using closest wp
+        # Computing wp speeds, using closest wp
         
-        rospy.loginfo('Next waypoint id = {0}'.format(next_wp_id))
+        # rospy.loginfo('Next waypoint id = {0}'.format(next_wp_id))
 
         self.waypoint_id_pub.publish(Int32(next_wp_id))
         # Prepare a list of the upcoming waypoints
         upcoming_waypoints = [self.base_waypoints[idx % len(self.base_waypoints)]
                               for idx in range(next_wp_id, next_wp_id + LOOKAHEAD_WPS + 1)]
-
+        
         for wp in upcoming_waypoints:
-            wp.twist.twist.linear.x = 40.0 * 0.27778
-
+            wp.twist.twist.linear.x = self.velocity * 0.27778
 
         # If the red light ahead is detected and within the range of 200 waypoints,
         # the x speed of the upcoming waypoits should be decelerated
-        if self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 800 and self.next_red_tl_wp > next_wp_id:
+        if (self.next_red_tl_wp - next_wp_id < 300 and self.next_red_tl_wp - next_wp_id > 50) or (self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 50 and self.next_red_tl_wp > next_wp_id):
             upcoming_waypoints = self.decelerate(next_wp_id, self.next_red_tl_wp, upcoming_waypoints)
 
         # Prepare message
-        msg = Lane(waypoints=upcoming_waypoints)
-        rospy.logwarn('The next msg waypoint speed is {0}'.format(msg.waypoints[0].twist.twist.linear.x))
-        rospy.logwarn('The next base_waypoint speed is {0}'.format(self.base_waypoints[next_wp_id].twist.twist.linear.x))
-        # Publish it
-        self.final_waypoints_pub.publish(msg)
+        self.final_waypoints_pub.publish(Lane(waypoints=upcoming_waypoints))
 
 
     def waypoints_cb(self, waypoints):
@@ -174,26 +181,10 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
-        rospy.logwarn('Next traffic light id = {0}'.format(msg))
+        # rospy.logwarn('Next traffic light id = {0}'.format(msg))
         wp_id = msg.data
         self.last_red_tl_wp = self.next_red_tl_wp #Save previous value
         self.next_red_tl_wp = wp_id #Get if of most recent red tl found
-        #rospy.logwarn('Next RED traffic light val = {0}'.format(self.base_waypoints[wp_id].pose))
-    
-        #If the red tl is near
-        if self.next_red_tl_wp != -1 and self.distance(self.base_waypoints, self.closest_point, self.next_red_tl_wp) < MIN_RED_TL_DIST :
-            #We've just found the red tl, then compute wp speeds
-            if self.next_red_tl_wp != self.last_red_tl_wp :
-                self.envelope.base_wps = self.base_waypoints
-                self.stop_at_red_wps = self.envelope.get_envelope(self.closest_point, self.next_red_tl_wp, self.actual_v)
-            self.red_tl_approach = True
-        else :
-            self.red_tl_approach = False
-        
-        rospy.logwarn('red approach = {0}'.format(self.red_tl_approach))
-
-        # First implementation of speed envelope. 
-        #We need to make sure that this gets created once, not every time a red is detected
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
@@ -205,15 +196,6 @@ class WaypointUpdater(object):
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
-    def distance(self, waypoints, wp1, wp2):
-        if wp1 == None or wp2 == None: 
-            return 1000 #Far away to be replaced by something safe
-        dist = 0
-        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-        for i in range(wp1, wp2+1):
-            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-            wp1 = i
-        return dist
 
 
 if __name__ == '__main__':
