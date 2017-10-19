@@ -111,8 +111,8 @@ class WaypointUpdater(object):
         to_tl_steps = next_tl_wp_id - next_wp_id
         waypoints[to_tl_steps].twist.twist.linear.x = -1.0
         waypoints[to_tl_steps - 1].twist.twist.linear.x = -1.0
-        for wp in waypoints[0:(to_tl_steps - 1)][::-1]:
-            dist = self.distance_2(wp.pose.pose.position, waypoints[to_tl_steps - 1].pose.pose.position)
+        for wp_seq in range(to_tl_steps - 1):
+            dist = self.distance(waypoints, wp_seq, to_tl_steps - 1)
             vel = math.sqrt(2 * MAX_DECEL * dist)/3
             if vel < 1.:
                 vel = 0.
@@ -121,9 +121,19 @@ class WaypointUpdater(object):
         return waypoints
 
 
+    def distance(self, waypoints, wp1, wp2):
+        dist = 0
+        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+        for i in range(wp1, wp2+1):
+            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
+            wp1 = i
+        return dist
+
+    '''
     def distance_2(self, p1, p2):
         x, y, z = p1.x - p2.x, p1.y - p2.y, p1.z - p2.z
         return math.sqrt(x*x + y*y + z*z)
+    '''    
 
     def current_velocity_callback(self, current_velocity) :
         self.actual_v = current_velocity.twist.linear.x    
