@@ -31,7 +31,7 @@ class Controller(object):
         self.sample_time = 1/50 # initial value, gets updated in loop
 
 
-        self.speed_PID = PID(1.0, 0.01, 0.1, mn = self.decel_limit, mx = self.accel_limit) # Dummy values
+        self.speed_PID = PID(1.0, 0.01, 5, mn = self.decel_limit, mx = self.accel_limit) # Dummy values
         self.steer_PID = PID(0.2, 0.0000001, 0.5, mn = -self.max_steer_angle, mx = self.max_steer_angle) # To be adjusted
 
         # initial control values	
@@ -60,7 +60,7 @@ class Controller(object):
             throttle = max(min(speed_command, 1.0), 0.0)
             brake = 0.0
         elif speed_command < 0.0:
-            throttle = speed_command * 10
+            throttle = speed_command
             brake = (self.vehicle_mass + self.fuel_capacity * GAS_DENSITY) * min(abs(speed_command), abs(self.decel_limit)) * self.wheel_radius
         return throttle, brake
 
