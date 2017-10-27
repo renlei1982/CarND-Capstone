@@ -115,7 +115,7 @@ class WaypointUpdater(object):
             
         for wp_seq in range(to_tl_steps - 5):
             dist = self.distance(waypoints, wp_seq, to_tl_steps - 5)
-            vel = math.sqrt(2 * MAX_DECEL * dist)/2.5
+            vel = math.sqrt(2 * MAX_DECEL * dist)/3.0
             if vel < 1.:
                 vel = 0.
             self.set_waypoint_velocity(waypoints, wp_seq, min(vel, self.velocity))
@@ -167,7 +167,7 @@ class WaypointUpdater(object):
 
         # If the red light ahead is detected and within the range of 200 waypoints,
         # the x speed of the upcoming waypoits should be decelerated
-        if (self.next_red_tl_wp - next_wp_id < 300 and self.next_red_tl_wp - next_wp_id > 50) or (self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 50 and self.next_red_tl_wp > next_wp_id):
+        if (self.next_red_tl_wp - next_wp_id < 350 and self.next_red_tl_wp - next_wp_id > 50) or (self.next_red_tl_wp != None and self.next_red_tl_wp - next_wp_id < 50 and self.next_red_tl_wp > next_wp_id):
             upcoming_waypoints = self.decelerate(next_wp_id, self.next_red_tl_wp, upcoming_waypoints)
 
         # Prepare message
