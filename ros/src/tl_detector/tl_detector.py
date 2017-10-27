@@ -72,7 +72,7 @@ class TLDetector(object):
         self.enabled = rospy.get_param('~enabled')
         if not self.enabled:
             rospy.logwarn('Traffic light detection is disabled')
-        
+
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
         rospy.Subscriber('/current_waypoint_id', Int32, self.current_waypoint_cb)
@@ -177,7 +177,7 @@ class TLDetector(object):
 
         """
         car_position = self.current_waypoint_id
-        if (not car_position) | (not self.light_waypoints):
+        if (car_position is None) | (not self.light_waypoints):
             rospy.logwarn('Data not ready for light classification')
             return -1, TrafficLight.UNKNOWN
 
@@ -191,7 +191,7 @@ class TLDetector(object):
 
         if light:
             state = self.get_light_state(light)
-            colour_name = [k for k, v in vars(TrafficLight).items() if v == state][0]
+            colour_name = 'Red' if state == TrafficLight.RED else 'Unknown'
             rospy.loginfo('Light at waypoint {0} classified as {1}'.format(light, colour_name))
             return light, state
         self.waypoints = None

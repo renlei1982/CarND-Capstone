@@ -1,3 +1,30 @@
+
+## Self driving car ND - Capstone Project Submission
+### Students  
+This submission was prepared by the **True North** team (cohort start date 2017-07-27)
+
+|Role           | Name                | Email                   |
+|:--------------|:--------------------|:------------------------|
+| Team Lead     | Tamas Panyi         |  panyitamas@gmail.com   |
+| Team Member 1 | Toby Coleman        |  tobycoleman@gmail.com  |
+| Team Member 2 | Giancarlo Colmenares|  giancarlo.cs@gmail.com |
+| Team Member 3 | Ahmed Elshaarany    |  sh3rany@gmail.com      |
+| Team Member 4 | Lei Ren             |  renlei1982@gmail.com   |
+
+The project repository can be accessed on Github:
+[True North - Capstone GitHub repo](https://github.com/psnx/CarND-Capstone)
+
+### AWS instance
+The code was tested on various AWS instances. The Team Lead used `p2.xlarge` instance type with the recommended AMI type: Deep Learning AMI Ubuntu Linux - 2.3_Sep2017 (ami-cd67a4b4)
+
+#### Running the code
+On virtual machine in file `~/CarND-Capstone/ros/src/styx/server.py` the monkey patch may need to be activated.
+```python
+# eventlet.monkey_patch()
+```
+For AWS it must be _deactivated_, as it is now.
+
+## Original Project Specification
 This is the project repo for the final project of the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
 
 ### Installation 
