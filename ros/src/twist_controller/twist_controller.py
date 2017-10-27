@@ -48,7 +48,7 @@ class Controller(object):
         self.LPF_angle = LowPassFilter(0.90, 1.0)
         '''
         # self.LPF_velocity = LowPassFilter(0.90, 1.0)
-        self.LPF_target_v = LowPassFilter(0.90, 0.5)
+        self.LPF_target_v = LowPassFilter(0.90, 0.3)
 
 
     def get_speed_control_vector(self, speed_command):
@@ -60,7 +60,7 @@ class Controller(object):
             throttle = max(min(speed_command, 1.0), 0.0)
             brake = 0.0
         elif speed_command < 0.0:
-            throttle = speed_command
+            throttle = 0
             brake = (self.vehicle_mass + self.fuel_capacity * GAS_DENSITY) * min(abs(speed_command), abs(self.decel_limit)) * self.wheel_radius
         return throttle, brake
 
