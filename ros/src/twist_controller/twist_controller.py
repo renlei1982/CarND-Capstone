@@ -48,7 +48,7 @@ class Controller(object):
         self.LPF_angle = LowPassFilter(0.90, 1.0)
         '''
         # self.LPF_velocity = LowPassFilter(0.90, 1.0)
-        self.LPF_target_v = LowPassFilter(0.90, 1.5)
+        self.LPF_target_v = LowPassFilter(0.90, 0.5)
 
 
     def get_speed_control_vector(self, speed_command):
